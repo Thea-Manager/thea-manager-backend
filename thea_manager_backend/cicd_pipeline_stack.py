@@ -26,6 +26,7 @@ current_directory = path.dirname(__file__)
 
 # Env vars
 load_dotenv(path.join(current_directory, "../.env"))
+STAGE=getenv("STAGE")
 
 # AWS Envs
 REGION=getenv("REGION")
@@ -78,7 +79,7 @@ class AuthenticationCicdPipelineStack(cdk.Stack):
     self.authentication_pipeline.add_application_stage(
         AuthenticationWebServiceStage(
             scope=self, 
-            id="authentication-deployment", 
+            id=STAGE, 
             env={'account': ACCOUNT_NUMBER,'region': REGION}
         )
     )
@@ -121,7 +122,7 @@ class RtcCicdPipelineStack(cdk.Stack):
     self.rtc_pipeline.add_application_stage(
         RTCWebServiceStage(
             scope=self, 
-            id="rtc-deployment", 
+            id=STAGE, 
             env={'account': ACCOUNT_NUMBER,'region': REGION}
         )
     )

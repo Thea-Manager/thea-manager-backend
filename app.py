@@ -41,10 +41,13 @@ environment = cdk.Environment(account=ACCOUNT_NUMBER, region=REGION)
 app = cdk.App()
 
 # Declare stack instances
+# Infrastructure only stacks
 vpc_stack = CdkVpcStack(app, f"vpc-{ACCOUNT_NUMBER}", env=environment)
 CdkEc2Stack(app, f"ec2-{ACCOUNT_NUMBER}", vpc_stack, env=environment)
 CdkDataStack(app, f"databases-{ACCOUNT_NUMBER}", env=environment)
-RtcCicdPipelineStack(app, id=f"rtc-authentication-{ACCOUNT_NUMBER}", env=environment)
+
+# Application related stacks
+RtcCicdPipelineStack(app, id=f"serverless-rtc-{ACCOUNT_NUMBER}", env=environment)
 AuthenticationCicdPipelineStack(app, id=f"serverless-authentication-{ACCOUNT_NUMBER}", env=environment)
 
 # ---------------------------------------------------------------

@@ -35,7 +35,7 @@ class AuthenticationWebServiceStage(cdk.Stage):
     super().__init__(scope, id, **kwargs)
 
     # Authentication webservice
-    authentication_service = AuthenticationStack(self, "authentication-web-service")
+    authentication_service = AuthenticationStack(self, id)
 
     # Retrieve url output
     self.url_output = authentication_service.url_output
@@ -46,7 +46,7 @@ class RTCWebServiceStage(cdk.Stage):
     super().__init__(scope, id, **kwargs)
 
     # Authentication webservice
-    rtc_service = RealtimeCommunicationStack(self, "rtc-web-service")
+    rtc_service = RealtimeCommunicationStack(self, id)
 
     # Retrieve url output
     self.api_endpoint = rtc_service.api_endpoint

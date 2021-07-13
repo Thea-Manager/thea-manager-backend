@@ -1044,10 +1044,10 @@ class AuthenticationStack(cdk.Stack):
                 scope=self, 
                 id=f"{name}-alarm",
                 metric=cloudwatch.Metric(
-                    metric_name='5XXError',
-                    namespace=f'AWS/ApiGateway/Authentication/{name}',
-                    dimensions={'ApiName': 'authentication'},
-                    statistic='Sum',
+                    metric_name="5XXError",
+                    namespace=f"AWS/ApiGateway/Authentication/{name}",
+                    dimensions={"ApiName": "authentication"},
+                    statistic="Sum",
                     period=cdk.Duration.minutes(1)),
                 threshold=1,
                 evaluation_periods=1)
@@ -1055,7 +1055,7 @@ class AuthenticationStack(cdk.Stack):
             # Canary deployment
             codedeploy.LambdaDeploymentGroup(
                 scope=self,
-                id=f'{name}-deployment-group',
+                id=f"{name}-deployment-group",
                 alias=alias,
                 deployment_config=codedeploy.LambdaDeploymentConfig.CANARY_10_PERCENT_10_MINUTES,
                 alarms=[failure_alarm])
