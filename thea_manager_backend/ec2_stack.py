@@ -31,6 +31,7 @@ from aws_cdk.aws_autoscaling import (
 
 # CDK Imports - EC2
 from aws_cdk.aws_ec2 import (
+    Vpc,
     Port,
     UserData,
     InstanceType,
@@ -44,9 +45,9 @@ from aws_cdk.aws_iam import (
     Policy,
     Effect,
     ManagedPolicy,
-    PolicyStatement
+    PolicyStatement,
+    ServicePrincipal
 )
-
 # ---------------------------------------------------------------
 #                           Globals
 # ---------------------------------------------------------------
@@ -76,15 +77,32 @@ class CdkEc2Stack(cdk.Stack):
         #            Configure ALB            #
         #######################################
 
+        # Lookup VPC
+        # self.vpc = Vpc.from_lookup(
+        #     scope=self,
+        #     id=f"{construct_id}-lookup",
+        #     is_default=False,
+        #     vpc_id=vpc_id,
+        # )
+        self.vpc = vpc_stack
+
+        # Subnet group names
+        self.subnet_group_names = {
+            "public":"alb-tier",
+            "shared":"shared-tier",
+            "private":"app-tier",
+            "isolated":"database-tier",
+        }
+
         # Create ALB
         self.alb = ApplicationLoadBalancer(
             scope=self,
             http2_enabled=True,
             id=f"{construct_id}-alb",
-            vpc=vpc_stack.vpc,
+            vpc=self.vpc,
             internet_facing=True,
             load_balancer_name=f"{construct_id}-alb",
-            vpc_subnets=SubnetSelection(subnet_group_name=vpc_stack.subnet_group_names["public"])
+            vpc_subnets=SubnetSelection(subnet_group_name=self.subnet_group_names["public"])
         )
 
         # Add redirect - http to https
@@ -108,7 +126,7 @@ class CdkEc2Stack(cdk.Stack):
 
         self.asg = AutoScalingGroup(
             scope=self,
-            vpc=vpc_stack.vpc,
+            vpc=self.vpc,
             id=f"{construct_id}-asg",
             auto_scaling_group_name=f"{construct_id}-asg",
             min_capacity=1,
@@ -117,7 +135,7 @@ class CdkEc2Stack(cdk.Stack):
             allow_all_outbound=False,
             machine_image=MachineImage.latest_amazon_linux(),
             instance_type=InstanceType(instance_type_identifier="c5.large"),
-            vpc_subnets=SubnetSelection(subnet_group_name=vpc_stack.subnet_group_names["private"]),
+            vpc_subnets=SubnetSelection(subnet_group_name=self.subnet_group_names["private"]),
             user_data=UserData.add_commands(user_data),
             # block_devices=[
             #     BlockDevice(
@@ -191,7 +209,7 @@ class CdkEc2Stack(cdk.Stack):
 
         # Create listener
         self.listener = self.alb.add_listener(
-            id="httpsListener",
+            id="https_listener",
             port=443,
             open=True, #TODO: Make this false and configure ALB to accept traffic only from CDN
             certificates=[ListenerCertificate("arn:aws:acm:ca-central-1:304843052975:certificate/4120d00a-e4f0-4125-b4b4-fe65e3328622")]
@@ -211,14 +229,4 @@ class CdkEc2Stack(cdk.Stack):
         self.asg.scale_on_request_count(
             id=f"{construct_id}-simple-scaling-rule",
             target_requests_per_minute=1500
-        )
-
-        #######################################
-        #              CFN Output             #
-        #######################################
-
-        cdk.CfnOutput(
-            scope=self,
-            id="Output",
-            value=self.alb.load_balancer_dns_name
         )

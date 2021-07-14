@@ -15,7 +15,12 @@ from aws_cdk import core as cdk
 from thea_manager_backend.vpc_stack import CdkVpcStack
 from thea_manager_backend.ec2_stack import CdkEc2Stack
 from thea_manager_backend.data_stack import CdkDataStack
-from thea_manager_backend.cicd_pipeline_stack import AuthenticationCicdPipelineStack, RtcCicdPipelineStack
+
+# CI/CD Stack Imports
+from thea_manager_backend.cicd_pipeline_stack import (
+    RtcCicdPipelineStack,
+    AuthenticationCicdPipelineStack
+)
 
 # ---------------------------------------------------------------
 #                        Env variables
@@ -43,8 +48,8 @@ app = cdk.App()
 # Declare stack instances
 # Infrastructure only stacks
 vpc_stack = CdkVpcStack(app, f"vpc-{ACCOUNT_NUMBER}", env=environment)
-CdkEc2Stack(app, f"ec2-{ACCOUNT_NUMBER}", vpc_stack, env=environment)
-CdkDataStack(app, f"databases-{ACCOUNT_NUMBER}", env=environment)
+ec2_stack = CdkEc2Stack(app, f"vpc-{ACCOUNT_NUMBER}", vpc_stack, env=environment)
+data_stack = CdkDataStack(app, f"databases-{ACCOUNT_NUMBER}", env=environment)
 
 # Application related stacks
 RtcCicdPipelineStack(app, id=f"serverless-rtc-{ACCOUNT_NUMBER}", env=environment)
