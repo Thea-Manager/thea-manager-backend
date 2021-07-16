@@ -10,9 +10,6 @@ from os import getenv
 # CDK Imports - core
 from aws_cdk import core as cdk
 
-# CDK Imports - Code deploy
-import aws_cdk.aws_codedeploy as codedeploy
-
 # CDK Imports - elastic load balancer
 from aws_cdk.aws_elasticloadbalancingv2 import (
     ApplicationProtocol,
@@ -22,32 +19,30 @@ from aws_cdk.aws_elasticloadbalancingv2 import (
 
 # CDK Imports - auto scale group
 from aws_cdk.aws_autoscaling import (
-    BlockDevice,
     HealthCheck,
-    AutoScalingGroup,
-    BlockDeviceVolume,
-    EbsDeviceVolumeType
+    AutoScalingGroup
 )
 
 # CDK Imports - EC2
 from aws_cdk.aws_ec2 import (
-    Vpc,
     Port,
+    Peer,
     UserData,
     InstanceType,
     MachineImage,
+    SecurityGroup,
     SubnetSelection
 )
 
 # CDK Imports - IAM
 from aws_cdk.aws_iam import (
-    Role,
     Policy,
     Effect,
-    ManagedPolicy,
-    PolicyStatement,
-    ServicePrincipal
+    PolicyStatement
 )
+
+from cdk_ec2_key_pair import KeyPair
+
 # ---------------------------------------------------------------
 #                           Globals
 # ---------------------------------------------------------------
@@ -77,14 +72,7 @@ class CdkEc2Stack(cdk.Stack):
         #            Configure ALB            #
         #######################################
 
-        # Lookup VPC
-        # self.vpc = Vpc.from_lookup(
-        #     scope=self,
-        #     id=f"{construct_id}-lookup",
-        #     is_default=False,
-        #     vpc_id=vpc_id,
-        # )
-        self.vpc = vpc_stack
+        self.vpc = vpc_stack.vpc
 
         # Subnet group names
         self.subnet_group_names = {
@@ -124,6 +112,16 @@ class CdkEc2Stack(cdk.Stack):
         #           Configure ASG             #
         #######################################
 
+        self.key_pair = KeyPair(
+            scope=self,
+            id="ssh-key-pair",
+            name="id_rsa",
+            description="SSH key pair",
+            store_public_key=True
+        )
+
+        # print(self.key_pair.id)
+
         self.asg = AutoScalingGroup(
             scope=self,
             vpc=self.vpc,
@@ -131,10 +129,11 @@ class CdkEc2Stack(cdk.Stack):
             auto_scaling_group_name=f"{construct_id}-asg",
             min_capacity=1,
             max_capacity=2,
-            desired_capacity=1,
-            allow_all_outbound=False,
+            desired_capacity=2,
+            allow_all_outbound=True,
+            key_name="id_rsa",
             machine_image=MachineImage.latest_amazon_linux(),
-            instance_type=InstanceType(instance_type_identifier="c5.large"),
+            instance_type=InstanceType(instance_type_identifier="t2.micro"),
             vpc_subnets=SubnetSelection(subnet_group_name=self.subnet_group_names["private"]),
             user_data=UserData.add_commands(user_data),
             # block_devices=[
@@ -149,6 +148,21 @@ class CdkEc2Stack(cdk.Stack):
             #     )
             # ]
         )
+
+        # Enable SSH to ASG
+        # self.asg.add_security_group(
+        #     security_group=SecurityGroup(
+        #         scope=self,
+        #         id="ssh-sec-group",
+        #         vpc=self.vpc,
+        #         security_group_name="ssh-sec-group"
+        #     ).add_ingress_rule(
+        #         peer=Peer.any_ipv4(),
+        #         connection=Port.tcp(22)
+        #     )
+        # )
+
+        self.asg.connections.allow_from_any_ipv4(Port.tcp(22), "Internet access SSH")
 
         # Configure ASG traffic from ALB
         self.asg.connections.allow_from(
@@ -220,7 +234,7 @@ class CdkEc2Stack(cdk.Stack):
             "listener-target-group",
             port=443,
             targets=[self.asg],
-            health_check=HealthCheck.ec2(
+            health_check=HealthCheck.elb(
                 grace=cdk.Duration.seconds(20)
             )
         )
@@ -229,4 +243,27 @@ class CdkEc2Stack(cdk.Stack):
         self.asg.scale_on_request_count(
             id=f"{construct_id}-simple-scaling-rule",
             target_requests_per_minute=1500
+        )
+
+        #######################################
+        #               Add Tags              #
+        #######################################
+
+        cdk.Tags.of(self.asg).add(
+            key="deployment-group",
+            value="thea-backend-server",
+            include_resource_types=[
+                "AWS::EC2::Instance",
+                "AWS::AutoScaling::AutoScalingGroup"
+            ]
+        )
+
+        #######################################
+        #              CFN Output             #
+        #######################################
+
+        cdk.CfnOutput(
+            scope=self,
+            id="Output",
+            value=self.alb.load_balancer_dns_name
         )

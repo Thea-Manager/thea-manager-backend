@@ -8,4 +8,5 @@ PyYAML
 pyjwt
 python-jose
 requests
+cdk-ec2-key-pair
 -e .

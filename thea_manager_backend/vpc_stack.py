@@ -64,7 +64,7 @@ class CdkVpcStack(cdk.Stack):
             flow_logs={
                 "thea-custom-vpc-logs": FlowLogOptions()
                 },
-            max_azs=3,
+            max_azs=2,
             subnet_configuration=[
                 SubnetConfiguration(
                     subnet_type=SubnetType.PUBLIC,
@@ -96,7 +96,7 @@ class CdkVpcStack(cdk.Stack):
             nat_gateway_subnets=SubnetSelection(
                 subnet_group_name=self.subnet_group_names["shared"]
             ),
-            default_instance_tenancy=DefaultInstanceTenancy("DEDICATED"),
+            # default_instance_tenancy=DefaultInstanceTenancy("DEDICATED"),
             gateway_endpoints={
                 "s3-vpc-endpoint":GatewayVpcEndpointOptions(
                     service=GatewayVpcEndpointAwsService.S3,
@@ -143,14 +143,14 @@ class CdkVpcStack(cdk.Stack):
                     "direction":TrafficDirection.INGRESS,
                     "rule_action":Action.ALLOW
                 },
-                {
-                    "id":"public-nacl-config-8",
-                    "cidr":AclCidr.ipv4(app_tier_subnets[2].ipv4_cidr_block),
-                    "rule_number":1300,
-                    "traffic":AclTraffic.tcp_port(443),
-                    "direction":TrafficDirection.INGRESS,
-                    "rule_action":Action.ALLOW
-                },
+                # {
+                #     "id":"public-nacl-config-8",
+                #     "cidr":AclCidr.ipv4(app_tier_subnets[2].ipv4_cidr_block),
+                #     "rule_number":1300,
+                #     "traffic":AclTraffic.tcp_port(443),
+                #     "direction":TrafficDirection.INGRESS,
+                #     "rule_action":Action.ALLOW
+                # },
                 {
                     "id":"public-nacl-config-12",
                     "cidr":AclCidr.ipv4("0.0.0.0/0"),
@@ -175,14 +175,14 @@ class CdkVpcStack(cdk.Stack):
                     "direction":TrafficDirection.EGRESS,
                     "rule_action":Action.ALLOW       
                 },
-                {
-                    "id":"public-nacl-config-24",
-                    "cidr":AclCidr.ipv4(app_tier_subnets[2].ipv4_cidr_block),
-                    "rule_number":2300,
-                    "traffic":AclTraffic.tcp_port(443),
-                    "direction":TrafficDirection.EGRESS,
-                    "rule_action":Action.ALLOW 
-                }
+                # {
+                #     "id":"public-nacl-config-24",
+                #     "cidr":AclCidr.ipv4(app_tier_subnets[2].ipv4_cidr_block),
+                #     "rule_number":2300,
+                #     "traffic":AclTraffic.tcp_port(443),
+                #     "direction":TrafficDirection.EGRESS,
+                #     "rule_action":Action.ALLOW 
+                # }
             ],
             "shared":[
                 {
@@ -209,14 +209,14 @@ class CdkVpcStack(cdk.Stack):
                     "direction":TrafficDirection.INGRESS,
                     "rule_action":Action.ALLOW
                 },
-                {
-                    "id":"shared-nacl-config-3",
-                    "cidr":AclCidr.ipv4(app_tier_subnets[2].ipv4_cidr_block),
-                    "rule_number":200,
-                    "traffic":AclTraffic.tcp_port(443),
-                    "direction":TrafficDirection.INGRESS,
-                    "rule_action":Action.ALLOW
-                },
+                # {
+                #     "id":"shared-nacl-config-3",
+                #     "cidr":AclCidr.ipv4(app_tier_subnets[2].ipv4_cidr_block),
+                #     "rule_number":200,
+                #     "traffic":AclTraffic.tcp_port(443),
+                #     "direction":TrafficDirection.INGRESS,
+                #     "rule_action":Action.ALLOW
+                # },
                 {
                     "id":"shared-nacl-config-4",
                     "cidr":AclCidr.ipv4("0.0.0.0/0"),
@@ -241,14 +241,14 @@ class CdkVpcStack(cdk.Stack):
                     "direction":TrafficDirection.EGRESS,
                     "rule_action":Action.ALLOW
                 },
-                {
-                    "id":"shared-nacl-config-7",
-                    "cidr":AclCidr.ipv4(app_tier_subnets[2].ipv4_cidr_block),
-                    "rule_number":400,
-                    "traffic":AclTraffic.tcp_port(443),
-                    "direction":TrafficDirection.EGRESS,
-                    "rule_action":Action.ALLOW
-                },
+                # {
+                #     "id":"shared-nacl-config-7",
+                #     "cidr":AclCidr.ipv4(app_tier_subnets[2].ipv4_cidr_block),
+                #     "rule_number":400,
+                #     "traffic":AclTraffic.tcp_port(443),
+                #     "direction":TrafficDirection.EGRESS,
+                #     "rule_action":Action.ALLOW
+                # },
             ],
             "private":[
                 {
@@ -285,14 +285,14 @@ class CdkVpcStack(cdk.Stack):
                     "direction":TrafficDirection.INGRESS,
                     "rule_action":Action.ALLOW
                 },
-                {
-                    "id":"isolated-nacl-config-4",
-                    "cidr":AclCidr.ipv4(app_tier_subnets[2].ipv4_cidr_block),
-                    "rule_number":150,
-                    "traffic":AclTraffic.tcp_port(3306),
-                    "direction":TrafficDirection.INGRESS,
-                    "rule_action":Action.ALLOW
-                },
+                # {
+                #     "id":"isolated-nacl-config-4",
+                #     "cidr":AclCidr.ipv4(app_tier_subnets[2].ipv4_cidr_block),
+                #     "rule_number":150,
+                #     "traffic":AclTraffic.tcp_port(3306),
+                #     "direction":TrafficDirection.INGRESS,
+                #     "rule_action":Action.ALLOW
+                # },
                 {
                     "id":"isolated-nacl-config-8",
                     "cidr":AclCidr.ipv4(app_tier_subnets[0].ipv4_cidr_block),
@@ -309,14 +309,14 @@ class CdkVpcStack(cdk.Stack):
                     "direction":TrafficDirection.EGRESS,
                     "rule_action":Action.ALLOW
                 },
-                {
-                    "id":"isolated-nacl-config-12",
-                    "cidr":AclCidr.ipv4(app_tier_subnets[2].ipv4_cidr_block),
-                    "rule_number":1300,
-                    "traffic":AclTraffic.tcp_port(443),
-                    "direction":TrafficDirection.EGRESS,
-                    "rule_action":Action.ALLOW
-                }
+                # {
+                #     "id":"isolated-nacl-config-12",
+                #     "cidr":AclCidr.ipv4(app_tier_subnets[2].ipv4_cidr_block),
+                #     "rule_number":1300,
+                #     "traffic":AclTraffic.tcp_port(443),
+                #     "direction":TrafficDirection.EGRESS,
+                #     "rule_action":Action.ALLOW
+                # }
             ]
         }
 
