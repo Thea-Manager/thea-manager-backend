@@ -36,12 +36,15 @@ from aws_cdk.aws_ec2 import (
 
 # CDK Imports - IAM
 from aws_cdk.aws_iam import (
+    Role,
     Policy,
     Effect,
-    PolicyStatement
+    ManagedPolicy,
+    PolicyDocument,
+    PolicyStatement,
+    ServicePrincipal
 )
 
-from cdk_ec2_key_pair import KeyPair
 
 # ---------------------------------------------------------------
 #                           Globals
@@ -54,9 +57,14 @@ REGION=getenv("REGION")
 #                           Configurations
 # ---------------------------------------------------------------
 
-user_data = f"yum -y update; yum install -y ruby aws-cli; \
-            cd /home/ec2-user; aws s3 cp s3://aws-codedeploy-{REGION}/latest/install . --region {REGION}; \
-            chmod +x install; ./install auto"
+user_data = f"sudo yum -y update;\
+            yum install -y ruby aws-cli; \
+            cd /home/ec2-user;\
+            aws s3 cp s3://aws-codedeploy-{REGION}/latest/install . --region {REGION}; \
+            sudo chmod +x install; \
+            sudo ./install auto; \
+            sudo yum install -y python-pip; \
+            sudo pip install awscli"
 
 # ---------------------------------------------------------------
 #                           Custom EC2 stack
@@ -93,15 +101,6 @@ class CdkEc2Stack(cdk.Stack):
             vpc_subnets=SubnetSelection(subnet_group_name=self.subnet_group_names["public"])
         )
 
-        # Add redirect - http to https
-        self.alb.add_redirect(
-            open=True,
-            source_port=80,
-            source_protocol=ApplicationProtocol.HTTP,
-            target_port=443,
-            target_protocol=ApplicationProtocol.HTTPS
-        )
-
         # # Enable access logging
         # self.alb.log_access_logs(
         #     bucket="",
@@ -112,16 +111,6 @@ class CdkEc2Stack(cdk.Stack):
         #           Configure ASG             #
         #######################################
 
-        self.key_pair = KeyPair(
-            scope=self,
-            id="ssh-key-pair",
-            name="id_rsa",
-            description="SSH key pair",
-            store_public_key=True
-        )
-
-        # print(self.key_pair.id)
-
         self.asg = AutoScalingGroup(
             scope=self,
             vpc=self.vpc,
@@ -131,11 +120,19 @@ class CdkEc2Stack(cdk.Stack):
             max_capacity=2,
             desired_capacity=2,
             allow_all_outbound=True,
-            key_name="id_rsa",
             machine_image=MachineImage.latest_amazon_linux(),
             instance_type=InstanceType(instance_type_identifier="t2.micro"),
             vpc_subnets=SubnetSelection(subnet_group_name=self.subnet_group_names["private"]),
             user_data=UserData.add_commands(user_data),
+            role=Role(
+                scope=self,
+                id=f"{construct_id}-iam-roles",
+                assumed_by=ServicePrincipal("ec2.amazonaws.com"),
+                managed_policies=[
+                    ManagedPolicy.from_aws_managed_policy_name("service-role/AWSCodeDeployRole"),
+                    ManagedPolicy.from_aws_managed_policy_name("service-role/AmazonEC2RoleforAWSCodeDeploy")
+                ]
+            )
             # block_devices=[
             #     BlockDevice(
             #         device_name="/dev/xvda",
@@ -147,28 +144,6 @@ class CdkEc2Stack(cdk.Stack):
             #         )
             #     )
             # ]
-        )
-
-        # Enable SSH to ASG
-        # self.asg.add_security_group(
-        #     security_group=SecurityGroup(
-        #         scope=self,
-        #         id="ssh-sec-group",
-        #         vpc=self.vpc,
-        #         security_group_name="ssh-sec-group"
-        #     ).add_ingress_rule(
-        #         peer=Peer.any_ipv4(),
-        #         connection=Port.tcp(22)
-        #     )
-        # )
-
-        self.asg.connections.allow_from_any_ipv4(Port.tcp(22), "Internet access SSH")
-
-        # Configure ASG traffic from ALB
-        self.asg.connections.allow_from(
-            self.alb,
-            Port.tcp(443),
-            "Enable ALB access to port 443 of EC2 in ASG"
         )
 
         # Attach inline policies - DynamoDB | DENY
@@ -223,16 +198,15 @@ class CdkEc2Stack(cdk.Stack):
 
         # Create listener
         self.listener = self.alb.add_listener(
-            id="https_listener",
-            port=443,
-            open=True, #TODO: Make this false and configure ALB to accept traffic only from CDN
-            certificates=[ListenerCertificate("arn:aws:acm:ca-central-1:304843052975:certificate/4120d00a-e4f0-4125-b4b4-fe65e3328622")]
+            id="http-listener",
+            port=80,
+            open=True
         )
 
         # Attach ASG to ALB
         self.listener.add_targets(
-            "listener-target-group",
-            port=443,
+            id="listener-target-group",
+            port=80,
             targets=[self.asg],
             health_check=HealthCheck.elb(
                 grace=cdk.Duration.seconds(20)
@@ -243,6 +217,42 @@ class CdkEc2Stack(cdk.Stack):
         self.asg.scale_on_request_count(
             id=f"{construct_id}-simple-scaling-rule",
             target_requests_per_minute=1500
+        )
+
+        #######################################
+        #      Configure Security Groups      #
+        #######################################
+
+        # ASG Security Groups
+        self.asg.connections.allow_from(
+            self.alb,
+            Port.tcp(80),
+            "Enable ASG inbound access to port 80 of ALB"
+        )
+
+        self.asg.connections.allow_from(
+            self.alb,
+            Port.tcp(443),
+            "Enable ASG inbound access to port 443 of ALB"
+        )
+
+        self.asg.connections.allow_to(
+            self.alb,
+            Port.tcp(80),
+            "Enable ASG outbound access to port 80 of ALB"
+        )
+
+        # ALB Security Groups
+        self.alb.connections.allow_to(
+            self.asg,
+            Port.tcp(443),
+            "Enable ALB outbound access to port 443 of ASG"
+        )
+
+        self.alb.connections.allow_from(
+            self.asg,
+            Port.tcp(443),
+            "Enable ALB outbound access to port 443 of ASG"
         )
 
         #######################################
