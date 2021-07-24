@@ -45,6 +45,9 @@ from aws_cdk.aws_iam import (
     ServicePrincipal
 )
 
+# CDK Imports - Log Groups
+from aws_cdk.aws_logs import LogGroup
+
 
 # ---------------------------------------------------------------
 #                           Globals
@@ -256,7 +259,7 @@ class CdkEc2Stack(cdk.Stack):
         )
 
         #######################################
-        #               Add Tags              #
+        #         Add Tags & log groups       #
         #######################################
 
         cdk.Tags.of(self.asg).add(
@@ -266,6 +269,12 @@ class CdkEc2Stack(cdk.Stack):
                 "AWS::EC2::Instance",
                 "AWS::AutoScaling::AutoScalingGroup"
             ]
+        )
+
+        self.log_group = LogGroup(
+            scope=self,
+            id="ec2-log-group",
+            log_group_name="thea-backend-ec2-log-group"
         )
 
         #######################################
