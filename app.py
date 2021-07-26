@@ -14,8 +14,6 @@ from aws_cdk import core as cdk
 # local stack imports
 from thea_manager_backend.vpc_stack import CdkVpcStack
 from thea_manager_backend.ecs_stack import CdkEcsStack
-# from thea_manager_backend.ecs_no_vpc_stack import CdkEcsStack
-
 
 # from thea_manager_backend.ec2_stack import CdkEc2Stack
 # from thea_manager_backend.data_stack import CdkDataStack
