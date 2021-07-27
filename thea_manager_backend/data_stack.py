@@ -4,13 +4,33 @@
 #                           Imports
 # ---------------------------------------------------------------
 
-# CDK Imports
-from aws_cdk import core as cdk
-from aws_cdk.aws_dynamodb import Table
+# Native imports
+from os import getenv
+from dotenv import load_dotenv
+
+# CDK Imports - Core
+from aws_cdk.core import cdk
+
+# CDK Imports - DynamoDB
+from aws_cdk.aws_dynamodb import (
+    Table,
+    Attribute,
+    AttributeType,
+    BillingMode,
+    TableEncryption,
+    ProjectionType
+)
+
+# CDK Imports - S3
 from aws_cdk.aws_s3 import Bucket, BucketEncryption, CorsRule, HttpMethods
 
-# Utils imports
-from .utils import dynamodb_configurations
+# ---------------------------------------------------------------
+#                        Env variables
+# ---------------------------------------------------------------
+
+# Load env vars
+load_dotenv()
+ACCOUNT_NUMBER=getenv("ACCOUNT_NUMBER")
 
 # ---------------------------------------------------------------
 #                           Custom VPC
@@ -24,10 +44,144 @@ class CdkDataStack(cdk.Stack):
         ######################################
         # Create & Configure DynamoDB Tables #
         ######################################
+        
+        # Dynamo table configurations
+        self.dynamodb_configurations={
+            "projects":{
+                "table_configuration": {
+                    "id":f"Projects-{ACCOUNT_NUMBER}",
+                    "table_name":f"Projects-{ACCOUNT_NUMBER}",
+                    "partition_key":Attribute(
+                        name="projectId",
+                        type=AttributeType.STRING
+                    ),
+                    "billing_mode":BillingMode.PAY_PER_REQUEST,
+                    "encryption":TableEncryption.AWS_MANAGED,
+                    "removal_policy":cdk.RemovalPolicy.DESTROY
+                    # "read_capacity":5, # enabled if billing mode is PROVISIONED
+                    # "write_capacity":5, # enabled if billing mode is PROVISIONED
+                    # "replication_regions":[],
+                },
+                "global_secondary_index": [
+                    {
+                        "partition_key":Attribute(
+                            name="customerId",
+                            type=AttributeType.STRING
+                        ),
+                        # "read_capacity":5, # enabled if Table's billing mode is PROVISIONED
+                        # "write_capacity":5, # enabled if Table's billing mode is PROVISIONED
+                        "index_name":"customerId",
+                        "projection_type":ProjectionType.ALL # Default
+                    }
+                ]
+            },
+            "workflows":{
+                "table_configuration": {
+                    "id":f"Workflows-{ACCOUNT_NUMBER}",
+                    "table_name":f"Workflows-{ACCOUNT_NUMBER}",
+                    "partition_key":Attribute(
+                        name="itemId",
+                        type=AttributeType.STRING
+                    ),
+                    "billing_mode":BillingMode.PAY_PER_REQUEST,
+                    "encryption":TableEncryption.AWS_MANAGED,
+                    "removal_policy":cdk.RemovalPolicy.DESTROY
+                    # "read_capacity":5, # enabled if billing mode is PROVISIONED
+                    # "write_capacity":5, # enabled if billing mode is PROVISIONED
+                    # "replication_regions":[],
+                },
+                "global_secondary_index": [
+                    {
+                        "partition_key":Attribute(
+                            name="typeId",
+                            type=AttributeType.STRING
+                        ),
+                        # "read_capacity":5, # enabled if Table's billing mode is PROVISIONED
+                        # "write_capacity":5, # enabled if Table's billing mode is PROVISIONED
+                        "index_name":"typeId",
+                        "projection_type":ProjectionType.ALL # Default
+                    }
+                ]
+            },
+            "chat_records":{
+                "table_configuration": {
+                    "id":f"ChatRecords-{ACCOUNT_NUMBER}",
+                    "table_name":f"ChatRecords-{ACCOUNT_NUMBER}",
+                    "partition_key":Attribute(
+                        name="messageId",
+                        type=AttributeType.STRING
+                    ),
+                    "billing_mode":BillingMode.PAY_PER_REQUEST,
+                    "encryption":TableEncryption.AWS_MANAGED,
+                    "removal_policy":cdk.RemovalPolicy.DESTROY
+                    # "read_capacity":5, # enabled if billing mode is PROVISIONED
+                    # "write_capacity":5, # enabled if billing mode is PROVISIONED
+                    # "replication_regions":[],
+                },
+                "global_secondary_index": [
+                    {
+                        "partition_key":Attribute(
+                            name="itemId",
+                            type=AttributeType.STRING
+                        ),
+                        # "read_capacity":5, # enabled if Table's billing mode is PROVISIONED
+                        # "write_capacity":5, # enabled if Table's billing mode is PROVISIONED
+                        "index_name":"itemId",
+                        "projection_type":ProjectionType.ALL # Default
+                    }
+                ]
+            },
+            "connections_manager_":{
+                "table_configuration": {
+                    "id":f"OnlineConnection-{ACCOUNT_NUMBER}",
+                    "table_name":f"OnlineConnection-{ACCOUNT_NUMBER}",
+                    "partition_key":Attribute(
+                        name="connectionId",
+                        type=AttributeType.STRING
+                    ),
+                    "billing_mode":BillingMode.PAY_PER_REQUEST,
+                    "encryption":TableEncryption.AWS_MANAGED,
+                    "removal_policy":cdk.RemovalPolicy.DESTROY
+                    # "read_capacity":5, # enabled if billing mode is PROVISIONED
+                    # "write_capacity":5, # enabled if billing mode is PROVISIONED
+                    # "replication_regions":[],
+                },
+                "global_secondary_index": []
+            },
+            "users":{
+                "table_configuration": {
+                    "id":f"Users-{ACCOUNT_NUMBER}",
+                    "table_name":f"Users-{ACCOUNT_NUMBER}",
+                    "partition_key":Attribute(
+                        name="userId",
+                        type=AttributeType.STRING
+                    ),
+                    "billing_mode":BillingMode.PAY_PER_REQUEST,
+                    "encryption":TableEncryption.AWS_MANAGED,
+                    "removal_policy":cdk.RemovalPolicy.DESTROY
+                    # "read_capacity":5, # enabled if billing mode is PROVISIONED
+                    # "write_capacity":5, # enabled if billing mode is PROVISIONED
+                    # "replication_regions":[],
+                },
+                "global_secondary_index": [
+                    {
+                        "partition_key":Attribute(
+                            name="organization",
+                            type=AttributeType.STRING
+                        ),
+                        # "read_capacity":5, # enabled if Table's billing mode is PROVISIONED
+                        # "write_capacity":5, # enabled if Table's billing mode is PROVISIONED
+                        "index_name":"organization",
+                        "projection_type":ProjectionType.ALL # Default
+                    }
+                ]
+            }
+        }
 
+        # Apply table configurations
         self.dynamo_tables={}
 
-        for table, configuration in dynamodb_configurations.items():
+        for table, configuration in self.dynamodb_configurations.items():
 
             # Create and set table configurations
             self.dynamo_tables[table]=Table(self, **configuration["table_configuration"])
@@ -44,7 +198,7 @@ class CdkDataStack(cdk.Stack):
             scope=self,
             id=f"{construct_id}-s3-bucket",
             bucket_name=f"{construct_id}-s3-bucket",
-            removal_policy=cdk.RemovalPolicy.DESTROY,
+            removal_policy=cdk.cdk.RemovalPolicy.DESTROY,
             auto_delete_objects=True,
             encryption=BucketEncryption.S3_MANAGED,
             enforce_ssl=True,
@@ -73,15 +227,4 @@ class CdkDataStack(cdk.Stack):
                     ]
                 )
             ]
-        )
-        
-
-        ######################################
-        #              CFN Output            #
-        ######################################
-        
-        cdk.CfnOutput(
-            scope=self,
-            id="Output",
-            value=f"data-stack-{construct_id}"
         )

@@ -1,10 +1,17 @@
+# AWS Libs
 boto3
+
+# Flask Libs
 flask
-typeguard
 Flask-Cors
 flask_bcrypt
-python-dotenv
+
+# Native Libs
 PyYAML
+requests
+typeguard
+python-dotenv
+
+# JWT Libs
 pyjwt
 python-jose
-requests

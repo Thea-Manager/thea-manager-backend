@@ -45,7 +45,6 @@ from aws_cdk.aws_ecs import (
     NetworkMode, 
     PortMapping,
     ContainerImage,
-    EnvironmentFile,
     Ec2TaskDefinition, 
     AddCapacityOptions
 )
@@ -110,6 +109,63 @@ class CdkEcsStack(cdk.Stack):
             network_mode=NetworkMode.AWS_VPC
         )
 
+        # Add IAM roles to task definitions
+        self.task_definition.add_to_task_role_policy( # Deny statements with not actions
+            PolicyStatement(
+                effect=Effect.DENY,
+                resources=["*"],
+                not_actions=[
+                    "S3:PutObject",
+                    "S3:GetObject",
+                    "S3:HeadObject",
+                    "S3:DeleteObject",
+                    "S3:DeleteObjects",
+                    "S3:ListObjectsV2",
+                    "S3:ListObjectVersions",
+                    "SES:ListIdentities",
+                    "SES:ListEmailIdentities",
+                    "SES:VerifyEmailIdentity",
+                    "SES:SendTemplatedEmail",
+                    "SES:DeleteEmailIdentity",
+                    "SES:SendTemplatedEmail",
+                    "SES:DeleteIdentity",
+                    "dynamodb:Query",
+                    "dynamodb:PutItem",
+                    "dynamodb:GetItem",
+                    "dynamodb:UpdateItem",
+                    # "dynamodb:DeleteItem"
+                ]
+            )
+        )
+
+        self.task_definition.add_to_task_role_policy( # Allow statements with actions
+            PolicyStatement(
+                effect=Effect.ALLOW,
+                resources=["*"],
+                actions=[
+                    "S3:PutObject",
+                    "S3:GetObject",
+                    "S3:HeadObject",
+                    "S3:DeleteObject",
+                    "S3:DeleteObjects",
+                    "S3:ListObjectsV2",
+                    "S3:ListObjectVersions",
+                    "SES:ListIdentities",
+                    "SES:ListEmailIdentities",
+                    "SES:VerifyEmailIdentity",
+                    "SES:SendTemplatedEmail",
+                    "SES:DeleteEmailIdentity",
+                    "SES:SendTemplatedEmail",
+                    "SES:DeleteIdentity",
+                    "dynamodb:Query",
+                    "dynamodb:PutItem",
+                    "dynamodb:GetItem",
+                    "dynamodb:UpdateItem",
+                    # "dynamodb:DeleteItem"
+                ]
+            )
+        )
+
         # Add docker containers
         self.task_definition.add_container(
             id="thea-backend-server-ec2-container",
@@ -140,10 +196,7 @@ class CdkEcsStack(cdk.Stack):
                     protocol=Protocol.TCP
                 )
             ],
-            readonly_root_filesystem=True,
-            # environment_files=EnvironmentFile(
-            #     path=path.join(current_directory, "src/.env")
-            # )
+            readonly_root_filesystem=True
         )
 
         #######################################
