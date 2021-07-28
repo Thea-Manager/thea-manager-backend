@@ -1,29 +1,41 @@
+#####################################################
+#                    Build stage                    #
+#####################################################
+
 # Pull verified base python image from dockerhub
-FROM python:3.8
+FROM python:3.9-alpine3.14 as build
+# Create app directory & make it current workdir
+COPY . /app
+WORKDIR /app
 
-# Declare container maintainer & version
-LABEL maintainer = "Islam Elkadi - islam@theamanger.com"
+# Install dependencies
+RUN python3 -m pip install --upgrade pip
+RUN pip install -r requirements.txt
 
-# Upgrade pip as ROOT
-RUN pip install --upgrade pip
+#####################################################
+#                  Release stage                    #
+#####################################################
 
-# # Add non-root user
-# RUN useradd -m -s /bin/false thea-worker
-# USER thea-worker
+# Pull Python3 distroless image
+FROM python:3.9-alpine3.14 as release
 
-# Make app directory working directory
-WORKDIR /home/app
+# Add non-root user
+RUN adduser -D -s /bin/false thea-worker
+USER thea-worker
 
-# Copy repo files into container
-COPY . /home/app
+# Copy built packages to current environment
+COPY --from=build /app /app
+COPY --from=build /usr/local/lib/python3.9/site-packages /usr/local/lib/python3.9/site-packages
 
-# # Change ownership to added user
-# COPY --chown=thea-worker:thea-worker . .
+# Make /app workdir and set env path
+WORKDIR /app
+ENV PYTHONPATH=/usr/local/lib/python3.9/site-packages
 
-# Install application dependencies
-RUN pip install --user -r /home/app/requirements.txt
+# Change ownership to added user
+COPY --chown=thea-worker:thea-worker . .
 
+# Expose app port
 EXPOSE 5000
 
 # Application entry point to start flask server
-ENTRYPOINT ["python3","/home/app/application.py"]
+ENTRYPOINT ["python3","/app/application.py"]

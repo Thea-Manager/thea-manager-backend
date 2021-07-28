@@ -1,17 +1,16 @@
 # AWS Libs
-boto3
+boto3==1.17.88
 
 # Flask Libs
-flask
-Flask-Cors
-flask_bcrypt
+flask==2.0.1
+Flask-Cors==3.0.10
 
 # Native Libs
-PyYAML
-requests
-typeguard
-python-dotenv
+PyYAML==5.4.1
+requests==2.25.1
+typeguard==2.12.1
+python-dotenv==0.17.1
 
 # JWT Libs
-pyjwt
-python-jose
+pyjwt==2.1.0
+python-jose==3.3.0

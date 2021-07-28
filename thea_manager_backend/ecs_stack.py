@@ -179,6 +179,7 @@ class CdkEcsStack(cdk.Stack):
                     log_group_name="thea-backend-server-log-group"
                 )
             ),
+            user="thea-worker",
             # image=ContainerImage.from_asset(
             #     directory=path.join(current_directory, "src")
             # ),

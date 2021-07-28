@@ -9,7 +9,7 @@ from os import getenv
 from dotenv import load_dotenv
 
 # CDK Imports - Core
-from aws_cdk.core import cdk
+from aws_cdk import core as cdk
 
 # CDK Imports - DynamoDB
 from aws_cdk.aws_dynamodb import (

@@ -7,10 +7,6 @@ from os import getenv
 # Flask imports
 from flask import Flask
 from flask_cors import CORS
-from flask_bcrypt import Bcrypt
-
-# Initialize global objects
-flask_bcrypt = Bcrypt()
 
 # ---------------------------------------------------------------
 #                        Create app instance
@@ -49,9 +45,6 @@ def create_app():
         application.config.from_object(config.ProdConfig)
 
     with application.app_context():
-
-        # Initialize globals
-        flask_bcrypt.init_app(application)
 
         # Import parts of our application
         from .routes.routes import api

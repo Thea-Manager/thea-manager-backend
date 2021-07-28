@@ -64,7 +64,7 @@ class CdkVpcStack(cdk.Stack):
             cidr="10.0.0.0/16",
             flow_logs={
                 "thea-custom-vpc-logs": FlowLogOptions()
-                },
+            },
             max_azs=3,
             subnet_configuration=[
                 SubnetConfiguration(
