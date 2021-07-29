@@ -75,9 +75,6 @@ jobs:
   # Workflow to trigger CodeQL SAST scan
   SAST-scan:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        language: ["python"]
     steps: 
      # Checkout code from repository
      - name: Checkout repository
@@ -89,7 +86,7 @@ jobs:
        id: init-codeql
        uses: github/codeql-action/init@v1
        with:
-        lanugages: ${{ matrix.language }}
+        lanugages: python
         queries: security-and-quality
        
      # Perform CodeQL Analysis
