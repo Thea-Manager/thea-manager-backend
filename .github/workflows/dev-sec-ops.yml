@@ -101,7 +101,7 @@ jobs:
   DAST-scan:
     runs-on: ubuntu-latest
     env:
-      working-directory: ./thea_manager_backend
+      working-directory: ./thea_manager_backend/src
     steps:
       # Checkout source code from repo
       - name: Checkout out Git repo
