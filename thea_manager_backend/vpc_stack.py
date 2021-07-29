@@ -12,9 +12,8 @@ from aws_cdk.aws_ec2 import (
 
     # VPC Imports
     Vpc,
-    Port,
     FlowLogOptions,
-    DefaultInstanceTenancy,
+    # DefaultInstanceTenancy,
 
     # Subnet Imports
     SubnetType,

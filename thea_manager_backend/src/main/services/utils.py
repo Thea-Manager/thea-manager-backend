@@ -468,7 +468,7 @@ def exception_handler(func):
             inner_function:
                 Output of executed wrapped method
     """
-    # @wraps(func)
+    (func)
     def inner_function(*args, **kwargs):
         try:
             return func(*args, **kwargs)

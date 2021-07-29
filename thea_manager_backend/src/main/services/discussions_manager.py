@@ -3,22 +3,14 @@
 # ---------------------------------------------------------------
 
 # General Imports
-import json
-
-from re import sub
 from time import time
-from uuid import uuid4
 from datetime import date
-from pprint import pprint
+
 from typeguard import check_argument_types
 
 # Logging Imports
 import logging
 logger = logging.getLogger(__name__)
-
-# Boto3 Imports
-from boto3 import resource
-from boto3.dynamodb.conditions import Key
 
 # Local package imports
 from .workflows import Workflows
@@ -314,7 +306,3 @@ class DiscussionsManager():
         # Get Data
         logger.info("Querying projects overview from DynamoDB")
         return self._db.read_multiple_items(table_name, key, projection_expression, expression_attribute_names)
-
-
-if __name__ == "__main__":
-    dm = DiscussionsManager()

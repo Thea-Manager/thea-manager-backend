@@ -2,11 +2,6 @@
 #                           Imports
 # ---------------------------------------------------------------
 
-# Security imports
-from hmac import new
-from hashlib import sha256
-from base64 import b64encode
-
 # Boto3 Imports
 from boto3 import client
 

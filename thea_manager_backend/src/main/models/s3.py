@@ -4,12 +4,11 @@
 import logging
 from platform import version
 
-from werkzeug.wrappers import Response
+
 logger = logging.getLogger(__name__)
 
 # Native imports
 from os import getenv
-from pprint import pprint
 
 # External imports
 from typeguard import check_argument_types
@@ -307,8 +306,4 @@ class S3():
 
         kwargs = {k:v for k,v in kwargs.items() if v}
         response = self._s3_client.delete_object(**kwargs)
-        return None, response['ResponseMetadata']['HTTPStatusCode'] 
-
-
-if __name__ == "__main__":
-    s3 = S3()
+        return None, response['ResponseMetadata']['HTTPStatusCode']

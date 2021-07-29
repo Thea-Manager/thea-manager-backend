@@ -399,7 +399,3 @@ class Dynamo():
 
         logger.info(f"{response} response['ResponseMetadata']['HTTPStatusCode']")
         return response, response['ResponseMetadata']['HTTPStatusCode']
-
-
-if __name__ == "__main__":
-    dynamo_db = Dynamo()

@@ -118,8 +118,8 @@ class SES():
         logger.info("Getting list of verified emaills")
         verified_emails = self._ses.list_identities(IdentityType = "EmailAddress")
         
-        logger.info("Retrieved verified emaills")
-        verified_emails = verified_emails["Identities"]
+        # logger.info("Retrieved verified emaills")
+        # verified_emails = verified_emails["Identities"]
 
         # Send verification emails to unverified identities
         logger.info("Sending verification emails")
@@ -166,9 +166,3 @@ class SES():
             logger.info(f"Invalidating email: {email}")
             self._ses.delete_verified_email_address(EmailAddress = email)
         return None, 200
-
-
-if __name__ == "__main__":
-
-    email = SES()
-

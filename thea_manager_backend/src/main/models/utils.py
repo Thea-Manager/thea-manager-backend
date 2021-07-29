@@ -1,12 +1,16 @@
 # Native imports
-from functools import wraps
 
 # Logging imports
 import logging
-logger = logging.getLogger(__name__)
 
 # Boto3 imports
 from botocore.exceptions import ClientError, ParamValidationError, WaiterError
+
+# ---------------------------------------------------------------
+#                               Globals
+# ---------------------------------------------------------------
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------
 #                           Decorator Methods
@@ -26,7 +30,7 @@ def exception_handler(func):
             inner_function:
                 Output of executed wrapped method
     """
-    # @wraps(func)
+    (func)
     def inner_function(*args, **kwargs):
         try:
             return func(*args, **kwargs)

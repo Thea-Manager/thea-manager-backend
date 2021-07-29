@@ -140,7 +140,7 @@ def lambda_handler(event, context):
         "sender": request_body["sender"],
         "itemId": request_body["itemId"]
     }
-    write(request_body["customerId"], item)
+    write(item)
     
     # TODO implement
     return {

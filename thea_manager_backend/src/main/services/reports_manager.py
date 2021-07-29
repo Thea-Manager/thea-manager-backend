@@ -8,10 +8,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
-# General Imports
-from re import sub
-from uuid import uuid4
-from pprint import pprint
+# Native Imports
 from datetime import date
 from typeguard import check_argument_types
 
@@ -395,6 +392,3 @@ class ReportsManager():
         
         logger.info(f"Project report deleted successfully")
         return "Project report deleted successfully", 200
-
-if __name__ == "__main__":
-    scope_manager = ReportsManager()

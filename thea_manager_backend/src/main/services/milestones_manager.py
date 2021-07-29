@@ -9,7 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 # General imports
-from pprint import pprint
+
 from datetime import datetime, date
 from typeguard import check_argument_types
 
@@ -390,6 +390,3 @@ class MilestonesManager():
             http_status_code = 304
 
         return {"success": success, "fail": fail}, http_status_code
-        
-if __name__ == "__main__":
-    milestones_manager = MilestonesManager()

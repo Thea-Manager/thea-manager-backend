@@ -20,12 +20,8 @@ from aws_cdk.aws_ec2 import (
 
 # CDK Imports - IAM
 from aws_cdk.aws_iam import (
-    Role,
-    Policy,
     Effect,
-    ManagedPolicy,
-    PolicyStatement,
-    ServicePrincipal
+    PolicyStatement
 )
 
 # CDK Imports - elastic load balancer

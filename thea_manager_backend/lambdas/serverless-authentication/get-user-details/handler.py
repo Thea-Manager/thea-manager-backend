@@ -3,7 +3,6 @@
 # ---------------------------------------------------------------
 
 # Native imports
-import logging
 from re import sub
 
 # Boto3 Imports

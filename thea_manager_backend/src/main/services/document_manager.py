@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 # General Imports
 from re import sub
-from pprint import pprint
+
 from datetime import date
 from os.path import splitext
 from typeguard import check_argument_types
@@ -455,6 +455,3 @@ class DocumentManager():
             response[i]["Size"] = convert_size(response[i]["Size"])
 
         return response, https_status_code
-
-if __name__ == "__main__":
-    dm = DocumentManager()

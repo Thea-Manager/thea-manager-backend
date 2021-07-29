@@ -6,11 +6,8 @@
 
 # Logging Imports
 import logging
-import re
-logger = logging.getLogger(__name__)
 
-# General Imports
-from pprint import pprint
+# Native Imports
 from collections import Counter
 from datetime import date, datetime
 from typeguard import check_argument_types
@@ -20,7 +17,13 @@ from ..models.dynamodb import Dynamo
 from .utils import clean_nested_dict, exception_handler, get_token_claims
 
 # ---------------------------------------------------------------
-#                       Analytics
+#                           Globals
+# ---------------------------------------------------------------
+
+logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------
+#                           Analytics
 # ---------------------------------------------------------------
 
 class Analytics():
@@ -461,8 +464,8 @@ class Analytics():
                     milestones.extend(list(scope.get("milestones", None).values()))
 
             # Extract analytics
-            project_status = Counter([x for x in status if x])
-            project_status = {"labels":list(project_status.keys()), "data":list(project_status.values())}
+            # project_status = Counter([x for x in status if x])
+            # project_status = {"labels":list(project_status.keys()), "data":list(project_status.values())}
 
             default_document_status = {"pending":0, "rejected":0, "requested":0, "submitted":0, "completed":0}
             document_status = Counter([x["status"] for x in dataroom if x])
@@ -497,6 +500,3 @@ class Analytics():
         else:
 
             return {}, 200
-        
-if __name__ == "__main__":
-    analytics = Analytics()

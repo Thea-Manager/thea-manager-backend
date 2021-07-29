@@ -453,6 +453,3 @@ class IssuesTracker():
 
         logger.info(f"Project issues deleted successfully")
         return "Project issues deleted successfully", 200
-
-if __name__ == "__main__":
-    issues_tracker = IssuesTracker()

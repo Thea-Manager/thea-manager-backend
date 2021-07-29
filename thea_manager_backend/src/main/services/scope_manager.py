@@ -592,7 +592,3 @@ class ScopeManager():
 
         logger.info(f"Successfully removed from project")
         return "Successfully removed from project"
-
-
-if __name__ == "__main__":
-    scope_manager = ScopeManager()

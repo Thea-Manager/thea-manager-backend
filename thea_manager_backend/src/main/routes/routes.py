@@ -7,7 +7,7 @@
 # Native imports
 import logging
 from re import sub
-from functools import wraps
+
 
 # Flask imports
 from flask import (
@@ -62,7 +62,7 @@ logger = logging.getLogger(__name__)
 
 # def verify_access_token(f):
 
-#     @wraps(f)
+#     (f)
 #     def decorated(*args, **kwargs):
 
 #         # Request body
@@ -447,20 +447,18 @@ def update_milestone(customerId: str, projectId: str):
     response, code = milestones_manager.update_existing_milestone(**kwargs)
     return make_response(jsonify({"data": response}), code)
 
-@api.route("/milestones/<customerId>/<projectId>/<scopeId>/<milestoneId>", methods=["DELETE"])
-# @verify_access_token
-def delete_milestone(customerId: str, projectId: str, scopeId: str, milestoneId: str):
+# @api.route("/milestones/<customerId>/<projectId>/<scopeId>/<milestoneId>", methods=["DELETE"])
+# # @verify_access_token
+# def delete_milestone(customerId: str, projectId: str, scopeId: str, milestoneId: str):
     
-    # Request Body
-    logger.info(f"DELETE /milestones/{customerId}/{projectId}/{scopeId}/{milestoneId}")
-    kwargs = {
-        "customer_id": customerId, 
-        "project_id": projectId, 
-        "scope_id": scopeId, 
-        "milestone_id": milestoneId
-    }
-
-    pass 
+#     # Request Body
+#     logger.info(f"DELETE /milestones/{customerId}/{projectId}/{scopeId}/{milestoneId}")
+#     kwargs = {
+#         "customer_id": customerId, 
+#         "project_id": projectId, 
+#         "scope_id": scopeId, 
+#         "milestone_id": milestoneId
+#     }
 
 # ---------------------------------------------------------------
 #        Issues Tracker

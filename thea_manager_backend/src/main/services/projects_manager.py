@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 # General Imports
 import json
 from os import getenv
-from pprint import pprint
+
 from datetime import date, datetime
 from typeguard import check_argument_types
 
@@ -483,7 +483,7 @@ class ProjectsManager():
 
         # Check if customer and project exist
         projection_expression = ",".join([
-            "projectId"
+            "projectId",
             "code",
             "projectName",
             "projectType",
@@ -663,6 +663,3 @@ class ProjectsManager():
 
     #     logger.info("Successfully removed from project", http_status_code)
     #     return "Successfully removed from project", http_status_code
-
-if __name__ == "__main__":
-    projects_manager = ProjectsManager()

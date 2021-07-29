@@ -168,6 +168,3 @@ class Workflows():
         workflows = sorted(workflows, key = lambda i: i['timestamp'])
         
         return workflows, http_status_code
-
-if __name__ == "__main__":
-    pass

@@ -126,6 +126,3 @@ class UserManager():
         # Get Data
         logger.info("Querying users overview from DynamoDB")
         return self._db.read_multiple_items(f"users-{organization_id}", key, projection_expression, expression_attribute_names)
-
-if __name__ == "__main__":
-    user_manager = UserManager()

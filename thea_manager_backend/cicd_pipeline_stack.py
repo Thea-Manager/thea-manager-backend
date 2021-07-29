@@ -5,7 +5,6 @@
 # ---------------------------------------------------------------
 
 # Native imports
-import random
 from os import getenv, path
 from dotenv import load_dotenv
 
@@ -19,10 +18,7 @@ from aws_cdk import aws_codepipeline_actions as cpactions
 # CDK Imports - IAM
 from aws_cdk.aws_iam import (
     Role,
-    Policy,
-    Effect,
     ManagedPolicy,
-    PolicyStatement,
     ServicePrincipal
 )
 
