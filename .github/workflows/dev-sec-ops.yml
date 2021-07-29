@@ -23,7 +23,7 @@ on:
 jobs:
 
   # Automated unit testing and linting
-  Automated checks:
+  Automated-code-checks:
     name    : Automated linting & testing
     runs-on : ubuntu-latest
     env:
@@ -73,7 +73,7 @@ jobs:
       # # Run automated code review
 
   # Workflow to trigger CodeQL SAST scan
-  SAST Scan:
+  SAST-scan:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -98,7 +98,7 @@ jobs:
        uses: github/codeql-action/analyze@v1
     
   # Workflow to trigger ZAP DAST scan
-  DAST Scan:
+  DAST-scan:
     runs-on: ubuntu-latest
     env:
       working-directory: ./thea_manager_backend
