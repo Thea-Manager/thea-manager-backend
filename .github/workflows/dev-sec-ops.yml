@@ -94,6 +94,28 @@ jobs:
        id: analyze-codeql
        uses: github/codeql-action/analyze@v1
     
+     # Perform Container Scan
+     - name: Build docker image
+       id: build-docker-image
+       run: docker build -t thea-manager .
+
+     # Perform Synk Container Analysis
+     - name: Scan docker image for vulnerabilities
+       continue-on-error: true
+       uses: snyk/actions/docker@master
+       env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+       with:
+        image: thea-manager
+        args: --file=./thea_manager_backend/src/Dockerfile
+    
+     # Upload results to github code scanning
+     - name: Upload result to GitHub Code Scanning
+       uses: github/codeql-action/upload-sarif@v1
+       with:
+         sarif_file: snyk.sarif
+
+
 #   # Workflow to trigger ZAP DAST scan
 #   DAST-scan:
 #     runs-on: ubuntu-latest
