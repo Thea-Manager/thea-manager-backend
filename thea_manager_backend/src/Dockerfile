@@ -4,6 +4,7 @@
 
 # Pull verified base python image from dockerhub
 FROM python:3.9-alpine3.14 as build
+
 # Create app directory & make it current workdir
 COPY . /app
 WORKDIR /app
