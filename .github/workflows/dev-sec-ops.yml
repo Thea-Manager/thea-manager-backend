@@ -8,13 +8,12 @@ on:
   push:
     branches: [ dev ]
     paths:
-      - "thea_manager_backend/src"
-      - "thea_manager_backend/lambdas"
+      - "src/backend/**"
   pull_request:
     branches: [ dev ]
     paths:
-      - "thea_manager_backend/src"
-      - "thea_manager_backend/lambdas"
+      - "src/backend/**"
+
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -27,7 +26,7 @@ jobs:
     name    : Automated linting & testing
     runs-on : ubuntu-latest
     env:
-      working-directory: ./thea_manager_backend
+      working-directory: ./src/backend
     steps:
       # Checkout source code from repo
       - name: Checkout out Git repo
@@ -107,7 +106,7 @@ jobs:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
        with:
         image: thea-manager
-        args: --file=./thea_manager_backend/src/Dockerfile
+        args: --file=./src/backend/server/Dockerfile
     
      # Upload results to github code scanning
      - name: Upload result to GitHub Code Scanning

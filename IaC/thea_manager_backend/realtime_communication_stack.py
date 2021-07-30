@@ -16,7 +16,6 @@ from aws_cdk.aws_iam import (
     Role,
     Effect,
     ManagedPolicy,
-    PolicyDocument,
     PolicyStatement,
     ServicePrincipal)
 
@@ -75,7 +74,7 @@ class RealtimeCommunicationStack(cdk.Stack):
             environment={"CUSTOMER_ID":ACCOUNT_NUMBER},
             vpc=vpc_stack.vpc,
             timeout=cdk.Duration.minutes(15),
-            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/realtime-communication/connect"))
+            code=lmb.Code.from_asset(path.join(current_directory, "../../src/backend/lambdas/realtime-communication/connect"))
         )
         
         self.connect_alias = lmb.Alias(
@@ -133,7 +132,7 @@ class RealtimeCommunicationStack(cdk.Stack):
             environment={"CUSTOMER_ID":ACCOUNT_NUMBER},
             vpc=vpc_stack.vpc,
             timeout=cdk.Duration.minutes(15),
-            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/realtime-communication/disconnect"))
+            code=lmb.Code.from_asset(path.join(current_directory, "../../src/backend/lambdas/realtime-communication/disconnect"))
         )
 
         self.disconnect_alias = lmb.Alias(
@@ -188,7 +187,7 @@ class RealtimeCommunicationStack(cdk.Stack):
             ),
             vpc=vpc_stack.vpc,
             timeout=cdk.Duration.minutes(15),
-            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/realtime-communication/default"))
+            code=lmb.Code.from_asset(path.join(current_directory, "../../src/backend/lambdas/realtime-communication/default"))
         )
 
         self.default_alias = lmb.Alias(
@@ -218,7 +217,7 @@ class RealtimeCommunicationStack(cdk.Stack):
             ),
             vpc=vpc_stack.vpc,
             timeout=cdk.Duration.minutes(15),
-            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/realtime-communication/message"))
+            code=lmb.Code.from_asset(path.join(current_directory, "../../src/backend/lambdas/realtime-communication/message"))
         )
         
         self.send_message_alias = lmb.Alias(
@@ -277,7 +276,7 @@ class RealtimeCommunicationStack(cdk.Stack):
             environment={"CUSTOMER_ID":ACCOUNT_NUMBER},
             vpc=vpc_stack.vpc,
             timeout=cdk.Duration.minutes(15),
-            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/realtime-communication/discussions"))
+            code=lmb.Code.from_asset(path.join(current_directory, "../../src/backend/lambdas/realtime-communication/discussions"))
         )
         
         self.discussions_alias = lmb.Alias(

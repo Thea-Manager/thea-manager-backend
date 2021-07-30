@@ -175,7 +175,7 @@ class AuthenticationStack(cdk.Stack):
             ),
             vpc=vpc_stack.vpc,
             timeout=cdk.Duration.minutes(15),
-            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/serverless-authentication/signup"))
+            code=lmb.Code.from_asset(path.join(current_directory, "../../src/backend/lambdas/serverless-authentication/signup"))
         )
 
         self.signup_alias = lmb.Alias(
@@ -230,7 +230,7 @@ class AuthenticationStack(cdk.Stack):
             ),
             vpc=vpc_stack.vpc,
             timeout=cdk.Duration.minutes(15),
-            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/serverless-authentication/confirm-signup"))
+            code=lmb.Code.from_asset(path.join(current_directory, "../../src/backend/lambdas/serverless-authentication/confirm-signup"))
         )
 
         self.confirm_signup_alias = lmb.Alias(
@@ -284,7 +284,7 @@ class AuthenticationStack(cdk.Stack):
             ),
             vpc=vpc_stack.vpc,
             timeout=cdk.Duration.minutes(15),
-            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/serverless-authentication/signin"))
+            code=lmb.Code.from_asset(path.join(current_directory, "../../src/backend/lambdas/serverless-authentication/signin"))
         )
 
         self.signin_alias = lmb.Alias(
@@ -337,7 +337,7 @@ class AuthenticationStack(cdk.Stack):
             ),
             vpc=vpc_stack.vpc,
             timeout=cdk.Duration.minutes(15),
-            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/serverless-authentication/confirm-signin"))
+            code=lmb.Code.from_asset(path.join(current_directory, "../../src/backend/lambdas/serverless-authentication/confirm-signin"))
         )
 
         self.confirm_signin_alias = lmb.Alias(
@@ -392,7 +392,7 @@ class AuthenticationStack(cdk.Stack):
             ),
             vpc=vpc_stack.vpc,
             timeout=cdk.Duration.minutes(15),
-            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/serverless-authentication/setup-totp"))
+            code=lmb.Code.from_asset(path.join(current_directory, "../../src/backend/lambdas/serverless-authentication/setup-totp"))
         )
 
         self.setup_totp_alias = lmb.Alias(
@@ -445,7 +445,7 @@ class AuthenticationStack(cdk.Stack):
             ),
             vpc=vpc_stack.vpc,
             timeout=cdk.Duration.minutes(15),
-            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/serverless-authentication/get-user-details"))
+            code=lmb.Code.from_asset(path.join(current_directory, "../../src/backend/lambdas/serverless-authentication/get-user-details"))
         )
 
         self.get_user_details_alias = lmb.Alias(
@@ -498,7 +498,7 @@ class AuthenticationStack(cdk.Stack):
             ),
             vpc=vpc_stack.vpc,
             timeout=cdk.Duration.minutes(15),
-            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/serverless-authentication/change-password"))
+            code=lmb.Code.from_asset(path.join(current_directory, "../../src/backend/lambdas/serverless-authentication/change-password"))
         )
 
         self.change_password_alias = lmb.Alias(
@@ -551,7 +551,7 @@ class AuthenticationStack(cdk.Stack):
             ),
             vpc=vpc_stack.vpc,
             timeout=cdk.Duration.minutes(15),
-            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/serverless-authentication/forgot-password"))
+            code=lmb.Code.from_asset(path.join(current_directory, "../../src/backend/lambdas/serverless-authentication/forgot-password"))
         )
 
         self.forgot_password_alias = lmb.Alias(
@@ -604,7 +604,7 @@ class AuthenticationStack(cdk.Stack):
             ),
             vpc=vpc_stack.vpc,
             timeout=cdk.Duration.minutes(15),
-            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/serverless-authentication/confirm-forgot-password"))
+            code=lmb.Code.from_asset(path.join(current_directory, "../../src/backend/lambdas/serverless-authentication/confirm-forgot-password"))
         )
 
         self.confirm_forgot_password_alias = lmb.Alias(
@@ -657,7 +657,7 @@ class AuthenticationStack(cdk.Stack):
             ),
             vpc=vpc_stack.vpc,
             timeout=cdk.Duration.minutes(15),
-            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/serverless-authentication/resend-confirmation-code"))
+            code=lmb.Code.from_asset(path.join(current_directory, "../../src/backend/lambdas/serverless-authentication/resend-confirmation-code"))
         )
 
         self.resend_confirmation_code_alias = lmb.Alias(
@@ -728,7 +728,7 @@ class AuthenticationStack(cdk.Stack):
             handler=self.signup_handler,
             allow_test_invoke=True,
             proxy=False,
-            # request_templates={"application/json":str(load(open(path.join(current_directory, "lambdas/signup/schema.json"), "r")))}
+            # request_templates={"application/json":str(load(open(path.join(current_directory, "../../src/backend/lambdas/signup/schema.json"), "r")))}
         )
         self.signup.add_method("POST", self.signup_lambda_integration)
         self.api_gateway.add_model(
@@ -778,7 +778,7 @@ class AuthenticationStack(cdk.Stack):
             handler=self.confirm_signup_handler,
             allow_test_invoke=True,
             proxy=False,
-            # request_templates={"application/json":str(load(open(path.join(current_directory, "lambdas/confirm-signup/schema.json"), "r")))}
+            # request_templates={"application/json":str(load(open(path.join(current_directory, "../../src/backend/lambdas/confirm-signup/schema.json"), "r")))}
         )
         self.confirm_signup.add_method("POST", self.confirm_signup_lambda_integration)
         self.api_gateway.add_model(
@@ -831,7 +831,7 @@ class AuthenticationStack(cdk.Stack):
             handler=self.signin_handler,
             allow_test_invoke=True,
             proxy=False,
-            # request_templates={"application/json":str(load(open(path.join(current_directory, "lambdas/signin/schema.json"), "r")))}
+            # request_templates={"application/json":str(load(open(path.join(current_directory, "../../src/backend/lambdas/signin/schema.json"), "r")))}
         )
         self.signin.add_method("POST", self.signin_lambda_integration)
         self.api_gateway.add_model(
@@ -867,7 +867,7 @@ class AuthenticationStack(cdk.Stack):
             handler=self.confirm_signin_handler,
             allow_test_invoke=True,
             proxy=False,
-            # request_templates={"application/json":str(load(open(path.join(current_directory, "lambdas/confirm-signin/schema.json"),"r")))}
+            # request_templates={"application/json":str(load(open(path.join(current_directory, "../../src/backend/lambdas/confirm-signin/schema.json"),"r")))}
         )
         self.confirm_signin.add_method("POST", self.confirm_signin_lambda_integration)
         self.api_gateway.add_model(
@@ -906,7 +906,7 @@ class AuthenticationStack(cdk.Stack):
             handler=self.setup_totp_handler,
             allow_test_invoke=True,
             proxy=False,
-            # request_templates={"application/json":str(load(open(path.join(current_directory, "lambdas/setup-totp/schema.json"),"r")))}
+            # request_templates={"application/json":str(load(open(path.join(current_directory, "../../src/backend/lambdas/setup-totp/schema.json"),"r")))}
         )
         self.setup_totp.add_method("POST", self.setup_totp_lambda_integration)
         self.api_gateway.add_model(
@@ -936,7 +936,7 @@ class AuthenticationStack(cdk.Stack):
             handler=self.get_user_details_handler,
             allow_test_invoke=True,
             proxy=False,
-            # request_templates={"application/json":str(load(open(path.join(current_directory, "lambdas/get-user-details/schema.json"),"r")))}
+            # request_templates={"application/json":str(load(open(path.join(current_directory, "../../src/backend/lambdas/get-user-details/schema.json"),"r")))}
         )
         self.get_user_details.add_method("POST", self.get_user_details_lambda_integration)
         self.api_gateway.add_model(
@@ -960,7 +960,7 @@ class AuthenticationStack(cdk.Stack):
             handler=self.change_password_handler,
             allow_test_invoke=True,
             proxy=False,
-            # request_templates={"application/json":str(load(open(path.join(current_directory, "lambdas/change-password/schema.json"),"r")))}
+            # request_templates={"application/json":str(load(open(path.join(current_directory, "../../src/backend/lambdas/change-password/schema.json"),"r")))}
         )
         self.change_password.add_method("POST", self.change_password_lambda_integration)
         self.api_gateway.add_model(
@@ -990,7 +990,7 @@ class AuthenticationStack(cdk.Stack):
             handler=self.forgot_password_handler,
             allow_test_invoke=True,
             proxy=False,
-            # request_templates={"application/json":str(load(open(path.join(current_directory, "lambdas/forgot-password/schema.json"),"r")))}
+            # request_templates={"application/json":str(load(open(path.join(current_directory, "../../src/backend/lambdas/forgot-password/schema.json"),"r")))}
         )
         self.forgot_password.add_method("POST", self.forgot_password_lambda_integration)
         self.api_gateway.add_model(
@@ -1020,7 +1020,7 @@ class AuthenticationStack(cdk.Stack):
             handler=self.confirm_forgot_password_handler,
             allow_test_invoke=True,
             proxy=False,
-            # request_templates={"application/json":str(load(open(path.join(current_directory, "lambdas/confirm-forgot-password/schema.json"),"r")))}
+            # request_templates={"application/json":str(load(open(path.join(current_directory, "../../src/backend/lambdas/confirm-forgot-password/schema.json"),"r")))}
         )
         self.confirm_forgot_password.add_method("POST", self.confirm_forgot_password_lambda_integration)
         self.api_gateway.add_model(
@@ -1056,7 +1056,7 @@ class AuthenticationStack(cdk.Stack):
             handler=self.resend_confirmation_code_handler,
             allow_test_invoke=True,
             proxy=False,
-            # request_templates={"application/json":str(load(open(path.join(current_directory, "lambdas/resend-confirmation-code/schema.json"),"r")))}
+            # request_templates={"application/json":str(load(open(path.join(current_directory, "../../src/backend/lambdas/resend-confirmation-code/schema.json"),"r")))}
         )
         self.resend_confirmation_code.add_method("POST", self.resend_confirmation_code_lambda_integration)
         self.api_gateway.add_model(

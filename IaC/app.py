@@ -18,13 +18,6 @@ from thea_manager_backend.data_stack import CdkDataStack
 from thea_manager_backend.authentication_stack import AuthenticationStack
 from thea_manager_backend.realtime_communication_stack import RealtimeCommunicationStack
 
-# CI/CD Stack Imports
-# from thea_manager_backend.cicd_pipeline_stack import (
-#     RtcCicdPipelineStack,
-#     AuthenticationCicdPipelineStack,
-#     TheaBackendServerCicdPipelineStack
-# )
-
 # ---------------------------------------------------------------
 #                        Env variables
 # ---------------------------------------------------------------
