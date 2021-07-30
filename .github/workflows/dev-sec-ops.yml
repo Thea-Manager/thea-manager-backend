@@ -80,18 +80,18 @@ jobs:
        id: checkout-repository
        uses: actions/checkout@v2
        
-#      # Initialize CodeQL
-#      - name: Initialize CodeQL
-#        id: init-codeql
-#        uses: github/codeql-action/init@v1
-#        with:
-#         lanugages: python
-#         queries: security-and-quality
+     # Initialize CodeQL
+     - name: Initialize CodeQL
+       id: init-codeql
+       uses: github/codeql-action/init@v1
+       with:
+        lanugages: python
+        queries: security-and-quality
        
-#      # Perform CodeQL Analysis
-#      - name: Perform CodeQL Analysis
-#        id: analyze-codeql
-#        uses: github/codeql-action/analyze@v1
+     # Perform CodeQL Analysis
+     - name: Perform CodeQL Analysis
+       id: analyze-codeql
+       uses: github/codeql-action/analyze@v1
     
      # Perform Container Scan
      - name: Build docker image
