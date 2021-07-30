@@ -15,13 +15,15 @@ from aws_cdk import core as cdk
 from thea_manager_backend.vpc_stack import CdkVpcStack
 from thea_manager_backend.ecs_stack import CdkEcsStack
 from thea_manager_backend.data_stack import CdkDataStack
+from thea_manager_backend.authentication_stack import AuthenticationStack
+from thea_manager_backend.realtime_communication_stack import RealtimeCommunicationStack
 
 # CI/CD Stack Imports
-from thea_manager_backend.cicd_pipeline_stack import (
-    RtcCicdPipelineStack,
-    AuthenticationCicdPipelineStack,
-    TheaBackendServerCicdPipelineStack
-)
+# from thea_manager_backend.cicd_pipeline_stack import (
+#     RtcCicdPipelineStack,
+#     AuthenticationCicdPipelineStack,
+#     TheaBackendServerCicdPipelineStack
+# )
 
 # ---------------------------------------------------------------
 #                        Env variables
@@ -47,20 +49,17 @@ environment = cdk.Environment(account=ACCOUNT_NUMBER, region=REGION)
 app = cdk.App()
 
 # Declare stacks
-# Infrastructure only stacks
 vpc_stack = CdkVpcStack(app, f"vpc-{ACCOUNT_NUMBER}", env=environment)
 ecs_stack = CdkEcsStack(app, f"ecs-{ACCOUNT_NUMBER}", vpc_stack, env=environment)
-# database_stack = CdkDataStack(app, f"databases-{ACCOUNT_NUMBER}", env=environment)
+database_stack = CdkDataStack(app, f"databases-{ACCOUNT_NUMBER}", env=environment)
+authentication_stack = AuthenticationStack(app, f"authentication-{ACCOUNT_NUMBER}", vpc_stack, env=environment)
+rtc_stack = RealtimeCommunicationStack(app, f"realtime-communication-{ACCOUNT_NUMBER}", vpc_stack, env=environment)
 
-# # Application related stacks
-# rtc_stack = RtcCicdPipelineStack(app, id=f"serverless-rtc-{ACCOUNT_NUMBER}", env=environment)
-# authentication_stack = AuthenticationCicdPipelineStack(app, id=f"serverless-authentication-{ACCOUNT_NUMBER}", env=environment)
-# thea_backend_server_stack = TheaBackendServerCicdPipelineStack(app, id=f"thea-backend-server-{ACCOUNT_NUMBER}", env=environment)
-
-# # Declare dependencies
-# ecs_stack.add_dependency(vpc_stack)
-# database_stack.add_dependency(ecs_stack)
-# thea_backend_server_stack.add_dependency(ecs_stack)
+# Define dependencies
+ecs_stack.add_dependency(vpc_stack)
+database_stack.add_dependency(ecs_stack)
+rtc_stack.add_dependency(database_stack)
+authentication_stack.add_dependency(database_stack)
 
 # ---------------------------------------------------------------
 #                Generate CloudFormation Template

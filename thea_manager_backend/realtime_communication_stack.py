@@ -2,10 +2,6 @@
 
 #TODO: Configure CORS to be more secure and limiting only to the domain you care about
 
-#TODO: For each lambda function, first create a default role only for lambdas with the service 
-# principal focused on lambda. Then add a role using the add_role method to add apigateway related
-# roles with the service principal focused on apigateway.amazonaws.com
-
 # ---------------------------------------------------------------
 #                           Imports
 # ---------------------------------------------------------------
@@ -51,17 +47,15 @@ ACCOUNT_NUMBER=getenv("ACCOUNT_NUMBER")
 
 class RealtimeCommunicationStack(cdk.Stack):
 
-    def __init__(self, scope: cdk.Construct, construct_id: str, **kwargs) -> None:
+    def __init__(self, scope: cdk.Construct, construct_id: str, vpc_stack, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
-
-        # The code that defines your stack goes here
 
         ######################################
         #      Create & lambda handlers      #
         ######################################
 
-        # Connection route handler & alias
-        connect_handler = lmb.Function(
+        # Connection route handler, alias, and IAM roles
+        self.connect_handler = lmb.Function(
             scope=self,
             id=f"{STAGE}-websocket-on-connect-handler",
             function_name=f"{STAGE}-websocket-on-connect",
@@ -72,28 +66,6 @@ class RealtimeCommunicationStack(cdk.Stack):
                 scope=self,
                 id="websocket-on-connect-handler-role",
                 assumed_by=ServicePrincipal("lambda.amazonaws.com"),
-                inline_policies={
-                    "websocket-on-connect":PolicyDocument(
-                        statements=[
-                            PolicyStatement(
-                                effect=Effect.DENY,
-                                actions=[
-                                    "dynamodb:*",
-                                    "apigateway:*"
-                                ],
-                                resources=["*"]
-                            ),
-                            PolicyStatement(
-                                effect=Effect.ALLOW,
-                                actions=[
-                                    "apigateway:POST",
-                                    "dynamodb:PutItem"
-                                ],
-                                resources=["*"]
-                            ),
-                        ]
-                    )
-                },
                 managed_policies=[
                     ManagedPolicy.from_aws_managed_policy_name("AmazonAPIGatewayInvokeFullAccess"),
                     ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaBasicExecutionRole"),
@@ -101,19 +73,47 @@ class RealtimeCommunicationStack(cdk.Stack):
                 ]
             ),
             environment={"CUSTOMER_ID":ACCOUNT_NUMBER},
-            #vpc=vpc_stack,
+            vpc=vpc_stack.vpc,
             timeout=cdk.Duration.minutes(15),
-            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/realtime-communication/connect")))
+            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/realtime-communication/connect"))
+        )
         
-        connect_alias = lmb.Alias(
+        self.connect_alias = lmb.Alias(
             scope=self,
-            version=connect_handler.current_version,
+            version=self.connect_handler.current_version,
             id=f"{STAGE}-websocket-on-connect-alias",
             alias_name="websocket-on-connect-alias",
         )
 
+        self.connect_handler.add_to_role_policy(
+            PolicyStatement(
+                effect=Effect.DENY,
+                resources=["*"],
+                not_actions=[
+                    "apigateway:POST",
+                    "dynamodb:PutItem",
+                    "ec2:CreateNetworkInterface",
+                    "ec2:DescribeNetworkInterfaces",
+                    "ec2:DeleteNetworkInterface",
+                    "ec2:AssignPrivateIpAddresses",
+                    "ec2:UnassignPrivateIpAddresses"
+                ]
+            )
+        )
+
+        self.connect_handler.add_to_role_policy(
+            PolicyStatement(
+                effect=Effect.ALLOW,
+                resources=["*"],
+                actions=[
+                    "apigateway:POST",
+                    "dynamodb:PutItem"
+                ]
+            )
+        )
+
         # Disconnection route handler & alias
-        disconnect_handler = lmb.Function(
+        self.disconnect_handler = lmb.Function(
             scope=self,
             id=f"{STAGE}-websocket-on-disconnect-handler",
             function_name=f"{STAGE}-websocket-on-disconnect",
@@ -124,28 +124,6 @@ class RealtimeCommunicationStack(cdk.Stack):
                 scope=self,
                 id="websocket-on-disconnect-handler-role",
                 assumed_by=ServicePrincipal("lambda.amazonaws.com"),
-                inline_policies={
-                    "websocket-on-disconnect":PolicyDocument(
-                        statements=[
-                            PolicyStatement(
-                                effect=Effect.DENY,
-                                actions=[
-                                    "dynamodb:*",
-                                    "apigateway:*"
-                                ],
-                                resources=["*"]
-                            ),
-                            PolicyStatement(
-                                effect=Effect.ALLOW,
-                                actions=[
-                                    "apigateway:POST",
-                                    "dynamodb:DeleteItem"
-                                ],
-                                resources=["*"]
-                            ),
-                        ]
-                    )
-                },
                 managed_policies=[
                     ManagedPolicy.from_aws_managed_policy_name("AmazonAPIGatewayInvokeFullAccess"),
                     ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaBasicExecutionRole"),
@@ -153,19 +131,47 @@ class RealtimeCommunicationStack(cdk.Stack):
                 ]
             ),
             environment={"CUSTOMER_ID":ACCOUNT_NUMBER},
-            #vpc=vpc_stack,
+            vpc=vpc_stack.vpc,
             timeout=cdk.Duration.minutes(15),
-            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/realtime-communication/disconnect")))
+            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/realtime-communication/disconnect"))
+        )
 
-        disconnect_alias = lmb.Alias(
+        self.disconnect_alias = lmb.Alias(
             scope=self,
-            version=disconnect_handler.current_version,
+            version=self.disconnect_handler.current_version,
             id=f"{STAGE}-websocket-on-disconnect-alias",
             alias_name="websocket-on-disconnect-alias",
         )
 
+        self.disconnect_handler.add_to_role_policy(
+            PolicyStatement(
+                effect=Effect.DENY,
+                resources=["*"],
+                not_actions=[
+                    "apigateway:POST",
+                    "dynamodb:DeleteItem",
+                    "ec2:CreateNetworkInterface",
+                    "ec2:DescribeNetworkInterfaces",
+                    "ec2:DeleteNetworkInterface",
+                    "ec2:AssignPrivateIpAddresses",
+                    "ec2:UnassignPrivateIpAddresses"
+                ]
+            )
+        )
+
+        self.disconnect_handler.add_to_role_policy(
+            PolicyStatement(
+                effect=Effect.ALLOW,
+                resources=["*"],
+                actions=[
+                    "apigateway:POST",
+                    "dynamodb:DeleteItem"
+                ]
+            )
+        )
+
         # Default connection route handler & alias
-        default_handler = lmb.Function(
+        self.default_handler = lmb.Function(
             scope=self,
             id=f"{STAGE}-websocket-on-default-connection-handler",
             function_name=f"{STAGE}-websocket-on-default",
@@ -180,19 +186,20 @@ class RealtimeCommunicationStack(cdk.Stack):
                     ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaVPCAccessExecutionRole")
                 ]
             ),
-            #vpc=vpc_stack,
+            vpc=vpc_stack.vpc,
             timeout=cdk.Duration.minutes(15),
-            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/realtime-communication/default")))
+            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/realtime-communication/default"))
+        )
 
-        default_alias = lmb.Alias(
+        self.default_alias = lmb.Alias(
             scope=self,
-            version=default_handler.current_version,
+            version=self.default_handler.current_version,
             id=f"{STAGE}-websocket-on-default-alias",
             alias_name="websocket-on-default",
         )
 
         # Send message route handler & alias
-        send_message_handler = lmb.Function(
+        self.send_message_handler = lmb.Function(
             scope=self,
             id=f"{STAGE}-websocket-send-message-handler",
             function_name=f"{STAGE}-websocket-send-message",
@@ -203,46 +210,53 @@ class RealtimeCommunicationStack(cdk.Stack):
                 scope=self,
                 id="websocket-send-message-handler-role",
                 assumed_by=ServicePrincipal("lambda.amazonaws.com"),
-                inline_policies={
-                    "websocket-send-message":PolicyDocument(
-                        statements=[
-                            PolicyStatement(
-                                effect=Effect.DENY,
-                                actions=[
-                                    "dynamodb:*",
-                                ],
-                                resources=["*"]
-                            ),
-                            PolicyStatement(
-                                effect=Effect.ALLOW,
-                                actions=[
-                                    "dynamodb:Scan",
-                                    "dynamodb:PutItem"
-                                ],
-                                resources=["*"]
-                            ),
-                        ]
-                    )
-                },
                 managed_policies=[
                     ManagedPolicy.from_aws_managed_policy_name("AmazonAPIGatewayInvokeFullAccess"),
                     ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaBasicExecutionRole"),
                     ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaVPCAccessExecutionRole")
                 ]
             ),
-            #vpc=vpc_stack,
+            vpc=vpc_stack.vpc,
             timeout=cdk.Duration.minutes(15),
-            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/realtime-communication/message")))
+            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/realtime-communication/message"))
+        )
         
-        send_message_alias = lmb.Alias(
+        self.send_message_alias = lmb.Alias(
             scope=self,
-            version=send_message_handler.current_version,
+            version=self.send_message_handler.current_version,
             id=f"{STAGE}-websocket-send-message-alias",
             alias_name="websocket-send-message",
         )
 
+        self.send_message_handler.add_to_role_policy(
+            PolicyStatement(
+                effect=Effect.DENY,
+                resources=["*"],
+                not_actions=[
+                    "dynamodb:Scan",
+                    "dynamodb:PutItem",
+                    "ec2:CreateNetworkInterface",
+                    "ec2:DescribeNetworkInterfaces",
+                    "ec2:DeleteNetworkInterface",
+                    "ec2:AssignPrivateIpAddresses",
+                    "ec2:UnassignPrivateIpAddresses"
+                ]
+            )
+        )
+
+        self.send_message_handler.add_to_role_policy(
+            PolicyStatement(
+                effect=Effect.ALLOW,
+                resources=["*"],
+                actions=[
+                    "dynamodb:Scan",
+                    "dynamodb:PutItem"
+                ]
+            )
+        )
+
         # Discussions route handler & alias
-        discussions_handler = lmb.Function(
+        self.discussions_handler = lmb.Function(
             scope=self,
             id=f"{STAGE}-websocket-discussions-handler",
             function_name=f"{STAGE}-websocket-discussions",
@@ -253,27 +267,6 @@ class RealtimeCommunicationStack(cdk.Stack):
                 scope=self,
                 id="websocket-discussions-role",
                 assumed_by=ServicePrincipal("lambda.amazonaws.com"),
-                inline_policies={
-                    "websocket-discussions":PolicyDocument(
-                        statements=[
-                            PolicyStatement(
-                                effect=Effect.DENY,
-                                actions=[
-                                    "dynamodb:*",
-                                ],
-                                resources=["*"]
-                            ),
-                            PolicyStatement(
-                                effect=Effect.ALLOW,
-                                actions=[
-                                    "dynamodb:Scan",
-                                    "dynamodb:PutItem"
-                                ],
-                                resources=["*"]
-                            ),
-                        ]
-                    )
-                },
                 managed_policies=[
                     ManagedPolicy.from_aws_managed_policy_name("AmazonAPIGatewayInvokeFullAccess"),
                     ManagedPolicy.from_aws_managed_policy_name("service-role/AmazonAPIGatewayPushToCloudWatchLogs"),
@@ -282,15 +275,43 @@ class RealtimeCommunicationStack(cdk.Stack):
                 ]
             ),
             environment={"CUSTOMER_ID":ACCOUNT_NUMBER},
-            #vpc=vpc_stack,
+            vpc=vpc_stack.vpc,
             timeout=cdk.Duration.minutes(15),
-            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/realtime-communication/discussions")))
+            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/realtime-communication/discussions"))
+        )
         
-        discussions_alias = lmb.Alias(
+        self.discussions_alias = lmb.Alias(
             scope=self,
-            version=discussions_handler.current_version,
+            version=self.discussions_handler.current_version,
             id=f"{STAGE}-websocket-discussions-alias",
             alias_name="websocket-discussions",
+        )
+
+        self.discussions_handler.add_to_role_policy(
+            PolicyStatement(
+                effect=Effect.DENY,
+                resources=["*"],
+                not_actions=[
+                    "dynamodb:Scan",
+                    "dynamodb:PutItem",
+                    "ec2:CreateNetworkInterface",
+                    "ec2:DescribeNetworkInterfaces",
+                    "ec2:DeleteNetworkInterface",
+                    "ec2:AssignPrivateIpAddresses",
+                    "ec2:UnassignPrivateIpAddresses"
+                ]
+            )
+        )
+
+        self.discussions_handler.add_to_role_policy(
+            PolicyStatement(
+                effect=Effect.ALLOW,
+                resources=["*"],
+                actions=[
+                    "dynamodb:Scan",
+                    "dynamodb:PutItem"
+                ]
+            )
         )
 
         ######################################
@@ -302,23 +323,23 @@ class RealtimeCommunicationStack(cdk.Stack):
             scope=self, 
             id="serverless-realtime-communication",
             api_name="serverless-realtime-communication",
-            connect_route_options={"integration": LambdaWebSocketIntegration(handler=connect_handler)},
-            disconnect_route_options={"integration": LambdaWebSocketIntegration(handler=disconnect_handler)},
-            default_route_options={"integration": LambdaWebSocketIntegration(handler=default_handler)}
+            connect_route_options={"integration": LambdaWebSocketIntegration(handler=self.connect_handler)},
+            disconnect_route_options={"integration": LambdaWebSocketIntegration(handler=self.disconnect_handler)},
+            default_route_options={"integration": LambdaWebSocketIntegration(handler=self.default_handler)}
         )
 
         # Add custom routes to websocket api gateway
         self.websocket_api_gateway.add_route(
             route_key="message",
             integration=LambdaWebSocketIntegration(
-                handler=send_message_handler
+                handler=self.send_message_handler
             )
         )
 
         self.websocket_api_gateway.add_route(
             route_key="discussions",
             integration=LambdaWebSocketIntegration(
-                handler=discussions_handler
+                handler=self.discussions_handler
             )
         )
 
@@ -329,11 +350,11 @@ class RealtimeCommunicationStack(cdk.Stack):
 
         # Zipped alias name & function
         zipped = [
-            (f"{STAGE}-connect-alias", connect_alias),
-            (f"{STAGE}-disconnect-alias", disconnect_alias),
-            (f"{STAGE}-default-alias", default_alias),
-            (f"{STAGE}-send-message-alias", send_message_alias),
-            (f"{STAGE}-discussions-alias", discussions_alias),
+            (f"{STAGE}-connect-alias", self.connect_alias),
+            (f"{STAGE}-disconnect-alias", self.disconnect_alias),
+            (f"{STAGE}-default-alias", self.default_alias),
+            (f"{STAGE}-send-message-alias", self.send_message_alias),
+            (f"{STAGE}-discussions-alias", self.discussions_alias),
         ]
 
         for name, alias in zipped:
@@ -361,12 +382,10 @@ class RealtimeCommunicationStack(cdk.Stack):
 
 
         ######################################
-        #      Create API gateway URL ref    #
+        #             Add env vars           #
         ######################################
 
-        # Create reference for serverless authentication API gateway
-        self.api_endpoint = cdk.CfnOutput(
-            scope=self,
-            value=self.websocket_api_gateway.api_endpoint,
-            id="websocket-realtime-communication-api-endpoint", 
+        self.discussions_handler.add_environment(
+            key="WEBSOCKET_ENDPOINT",
+            value=self.websocket_api_gateway.api_endpoint
         )

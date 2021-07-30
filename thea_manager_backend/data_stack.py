@@ -198,7 +198,7 @@ class CdkDataStack(cdk.Stack):
             scope=self,
             id=f"{construct_id}-s3-bucket",
             bucket_name=f"{construct_id}-s3-bucket",
-            removal_policy=cdk.cdk.RemovalPolicy.DESTROY,
+            removal_policy=cdk.RemovalPolicy.DESTROY,
             auto_delete_objects=True,
             encryption=BucketEncryption.S3_MANAGED,
             enforce_ssl=True,

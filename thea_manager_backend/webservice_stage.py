@@ -49,5 +49,3 @@ class AuthenticationWebServiceStage(cdk.Stage):
 
     # Retrieve url output
     self.url_output = authentication_service.url_output
-
-

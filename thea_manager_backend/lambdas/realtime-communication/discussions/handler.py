@@ -21,13 +21,14 @@ from boto3.dynamodb.conditions import Key, And
 # ---------------------------------------------------------------
 
 CUSTOMER_ID=getenv("CUSTOMER_ID")
+WEBSOCKET_ENDPOINT=getenv("WEBSOCKET_ENDPOINT")
 
 # ---------------------------------------------------------------
 #                           Configs
 # ---------------------------------------------------------------
 
 db = resource("dynamodb")
-websock_client = client("apigatewaymanagementapi", endpoint_url = "https://aoboky0l46.execute-api.ca-central-1.amazonaws.com/dev")
+websock_client = client("apigatewaymanagementapi", endpoint_url = WEBSOCKET_ENDPOINT)
 
 logger = logging.getLogger(__name__)
 

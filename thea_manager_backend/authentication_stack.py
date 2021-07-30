@@ -64,7 +64,7 @@ STAGE=getenv("STAGE")
 
 class AuthenticationStack(cdk.Stack):
 
-    def __init__(self, scope: cdk.Construct, construct_id: str, **kwargs) -> None:
+    def __init__(self, scope: cdk.Construct, construct_id: str, vpc_stack, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)        
 
         ######################################
@@ -157,7 +157,7 @@ class AuthenticationStack(cdk.Stack):
         ######################################
 
         # Signup handler & alias
-        signup_handler = lmb.Function(
+        self.signup_handler = lmb.Function(
             scope=self,
             id=f"{STAGE}-signup-handler",
             function_name=f"{STAGE}-signup-handler",
@@ -168,44 +168,51 @@ class AuthenticationStack(cdk.Stack):
                 scope=self,
                 id="signup-handler-role",
                 assumed_by=ServicePrincipal("lambda.amazonaws.com"),
-                inline_policies={
-                    "cognito-signup":PolicyDocument(
-                        statements=[
-                            PolicyStatement(
-                                effect=Effect.DENY,
-                                actions=[
-                                    "cognito:*"
-                                ],
-                                resources=["*"]
-                            ),
-                            PolicyStatement(
-                                effect=Effect.ALLOW,
-                                actions=[
-                                    "cognito:SignUp"
-                                ],
-                                resources=["*"]
-                            ),
-                        ]
-                    )
-                },
                 managed_policies=[
                     ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaBasicExecutionRole"),
                     ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaVPCAccessExecutionRole"),
                 ]
             ),
-            #vpc=vpc_stack,
+            vpc=vpc_stack.vpc,
             timeout=cdk.Duration.minutes(15),
-            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/serverless-authentication/signup")))
+            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/serverless-authentication/signup"))
+        )
 
-        signup_alias = lmb.Alias(
+        self.signup_alias = lmb.Alias(
             scope=self,
-            version=signup_handler.current_version,
+            version=self.signup_handler.current_version,
             id=f"{STAGE}-signup-alias",
             alias_name="signup-alias",
         )
+        
+        self.signup_handler.add_to_role_policy(
+            PolicyStatement(
+                effect=Effect.DENY,
+                resources=["*"],
+                not_actions=[
+                    "cognito:SignUp",
+                    "ec2:CreateNetworkInterface",
+                    "ec2:DescribeNetworkInterfaces",
+                    "ec2:DeleteNetworkInterface",
+                    "ec2:AssignPrivateIpAddresses",
+                    "ec2:UnassignPrivateIpAddresses"
+                ]
+            )
+        )
+
+        self.signup_handler.add_to_role_policy(
+            PolicyStatement(
+                effect=Effect.ALLOW,
+                resources=["*"],
+                actions=[
+                    "cognito:SignUp"
+                ]
+            )
+        )
+
 
         # Confirm signup & alias
-        confirm_signup_handler = lmb.Function(
+        self.confirm_signup_handler = lmb.Function(
             scope=self,
             id=f"{STAGE}-confirm-signup-handler",
             function_name=f"{STAGE}-confirm-signup-handler",
@@ -216,44 +223,51 @@ class AuthenticationStack(cdk.Stack):
                 scope=self,
                 id="confirm-signup-handler-role",
                 assumed_by=ServicePrincipal("lambda.amazonaws.com"),
-                inline_policies={
-                    "cognito-confirm-signup":PolicyDocument(
-                        statements=[
-                            PolicyStatement(
-                                effect=Effect.DENY,
-                                actions=[
-                                    "cognito:*"
-                                ],
-                                resources=["*"]
-                            ),
-                            PolicyStatement(
-                                effect=Effect.ALLOW,
-                                actions=[
-                                    "cognito:ConfirmSignUp"
-                                ],
-                                resources=["*"]
-                            ),
-                        ]
-                    )
-                },
                 managed_policies=[
                     ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaBasicExecutionRole"),
                     ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaVPCAccessExecutionRole"),
                 ]
             ),
-            #vpc=vpc_stack,
+            vpc=vpc_stack.vpc,
             timeout=cdk.Duration.minutes(15),
-            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/serverless-authentication/confirm-signup")))
+            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/serverless-authentication/confirm-signup"))
+        )
 
-        confirm_signup_alias = lmb.Alias(
+        self.confirm_signup_alias = lmb.Alias(
             scope=self,
-            version=confirm_signup_handler.current_version,
+            version=self.confirm_signup_handler.current_version,
             id=f"{STAGE}-confirm-signup-alias",
             alias_name="confirm-signup-alias",
         )
 
+        self.confirm_signup_handler.add_to_role_policy(
+            PolicyStatement(
+                effect=Effect.DENY,
+                resources=["*"],
+                not_actions=[
+                    "cognito:ConfirmSignUp",
+                    "ec2:CreateNetworkInterface",
+                    "ec2:DescribeNetworkInterfaces",
+                    "ec2:DeleteNetworkInterface",
+                    "ec2:AssignPrivateIpAddresses",
+                    "ec2:UnassignPrivateIpAddresses"
+                ]
+            )
+        )
+
+        self.confirm_signup_handler.add_to_role_policy(
+            PolicyStatement(
+                effect=Effect.ALLOW,
+                resources=["*"],
+                actions=[
+                    "cognito:ConfirmSignUp"
+                ]
+            )
+        )
+
+
         # Signin & alias
-        signin_handler = lmb.Function(
+        self.signin_handler = lmb.Function(
             scope=self,
             id=f"{STAGE}-signin-handler",
             function_name=f"{STAGE}-signin-handler",
@@ -263,44 +277,50 @@ class AuthenticationStack(cdk.Stack):
                 scope=self,
                 id="signin-handler-role",
                 assumed_by=ServicePrincipal("lambda.amazonaws.com"),
-                inline_policies={
-                    "cognito-signin":PolicyDocument(
-                        statements=[
-                            PolicyStatement(
-                                effect=Effect.DENY,
-                                actions=[
-                                    "cognito:*"
-                                ],
-                                resources=["*"]
-                            ),
-                            PolicyStatement(
-                                effect=Effect.ALLOW,
-                                actions=[
-                                    "cognito:InitiateAuth"
-                                ],
-                                resources=["*"]
-                            ),
-                        ]
-                    )
-                },
                 managed_policies=[
                     ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaBasicExecutionRole"),
                     ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaVPCAccessExecutionRole"),
                 ]
             ),
-            #vpc=vpc_stack,
+            vpc=vpc_stack.vpc,
             timeout=cdk.Duration.minutes(15),
-            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/serverless-authentication/signin")))
+            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/serverless-authentication/signin"))
+        )
 
-        signin_alias = lmb.Alias(
+        self.signin_alias = lmb.Alias(
             scope=self,
-            version=signin_handler.current_version,
+            version=self.signin_handler.current_version,
             id=f"{STAGE}-signin-alias",
             alias_name="signin-alias",
         )
 
+        self.signin_handler.add_to_role_policy(
+            PolicyStatement(
+                effect=Effect.DENY,
+                resources=["*"],
+                not_actions=[
+                    "cognito:InitiateAuth",
+                    "ec2:CreateNetworkInterface",
+                    "ec2:DescribeNetworkInterfaces",
+                    "ec2:DeleteNetworkInterface",
+                    "ec2:AssignPrivateIpAddresses",
+                    "ec2:UnassignPrivateIpAddresses"
+                ]
+            )
+        )
+
+        self.signin_handler.add_to_role_policy(
+            PolicyStatement(
+                effect=Effect.ALLOW,
+                resources=["*"],
+                actions=[
+                    "cognito:InitiateAuth"
+                ]
+            )
+        )
+
         # Confirm signin & alias
-        confirm_signin_handler = lmb.Function(
+        self.confirm_signin_handler = lmb.Function(
             scope=self,
             id=f"{STAGE}-confirm-signin-handler",
             function_name=f"{STAGE}-confirm-signin-handler",
@@ -310,46 +330,52 @@ class AuthenticationStack(cdk.Stack):
                 scope=self,
                 id="confirm-signin-handler-role",
                 assumed_by=ServicePrincipal("lambda.amazonaws.com"),
-                inline_policies={
-                    "cognito-confirm-signin":PolicyDocument(
-                        statements=[
-                            PolicyStatement(
-                                effect=Effect.DENY,
-                                actions=[
-                                    "dynamodb:*",
-                                    "cognito:*"
-                                ],
-                                resources=["*"]
-                            ),
-                            PolicyStatement(
-                                effect=Effect.ALLOW,
-                                actions=[
-                                    "dynamodb:PutItem",
-                                    "cognito:RespondToAuthChallenge"
-                                ],
-                                resources=["*"]
-                            ),
-                        ]
-                    )
-                },
                 managed_policies=[
                     ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaBasicExecutionRole"),
                     ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaVPCAccessExecutionRole"),
                 ]
             ),
-            #vpc=vpc_stack,
+            vpc=vpc_stack.vpc,
             timeout=cdk.Duration.minutes(15),
-            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/serverless-authentication/confirm-signin")))
+            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/serverless-authentication/confirm-signin"))
+        )
 
-        confirm_signin_alias = lmb.Alias(
+        self.confirm_signin_alias = lmb.Alias(
             scope=self,
-            version=confirm_signin_handler.current_version,
+            version=self.confirm_signin_handler.current_version,
             id=f"{STAGE}-confirm-signin-alias",
             alias_name="confirm-signin-alias",
         )
 
+        self.confirm_signin_handler.add_to_role_policy(
+            PolicyStatement(
+                effect=Effect.DENY,
+                resources=["*"],
+                not_actions=[
+                    "dynamodb:PutItem",
+                    "cognito:RespondToAuthChallenge",
+                    "ec2:CreateNetworkInterface",
+                    "ec2:DescribeNetworkInterfaces",
+                    "ec2:DeleteNetworkInterface",
+                    "ec2:AssignPrivateIpAddresses",
+                    "ec2:UnassignPrivateIpAddresses"
+                ]
+            )
+        )
+
+        self.confirm_signin_handler.add_to_role_policy(
+            PolicyStatement(
+                effect=Effect.ALLOW,
+                resources=["*"],
+                actions=[
+                    "dynamodb:PutItem",
+                    "cognito:RespondToAuthChallenge"
+                ]
+            )
+        )
+
         # Setup TOTP & alias
-        setup_totp_handler = lmb.Function(
+        self.setup_totp_handler = lmb.Function(
             scope=self,
             id=f"{STAGE}-setup-totp",
             function_name=f"{STAGE}-setup-totp",
@@ -359,44 +385,50 @@ class AuthenticationStack(cdk.Stack):
                 scope=self,
                 id="setup-totp-handler-role",
                 assumed_by=ServicePrincipal("lambda.amazonaws.com"),
-                inline_policies={
-                    "cognito-setup-totp":PolicyDocument(
-                        statements=[
-                            PolicyStatement(
-                                effect=Effect.DENY,
-                                actions=[
-                                    "cognito:*"
-                                ],
-                                resources=["*"]
-                            ),
-                            PolicyStatement(
-                                effect=Effect.ALLOW,
-                                actions=[
-                                    "cognito:AssociateSoftwareToken"
-                                ],
-                                resources=["*"]
-                            ),
-                        ]
-                    )
-                },
                 managed_policies=[
                     ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaBasicExecutionRole"),
                     ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaVPCAccessExecutionRole"),
                 ]
             ),
-            #vpc=vpc_stack,
+            vpc=vpc_stack.vpc,
             timeout=cdk.Duration.minutes(15),
-            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/serverless-authentication/setup-totp")))
+            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/serverless-authentication/setup-totp"))
+        )
 
-        setup_totp_alias = lmb.Alias(
+        self.setup_totp_alias = lmb.Alias(
             scope=self,
-            version=setup_totp_handler.current_version,
+            version=self.setup_totp_handler.current_version,
             id=f"{STAGE}-setup-totp-alias",
             alias_name="setup-totp-alias",
         )
 
+        self.setup_totp_handler.add_to_role_policy(
+            PolicyStatement(
+                effect=Effect.DENY,
+                resources=["*"],
+                not_actions=[
+                    "cognito:AssociateSoftwareToken",
+                    "ec2:CreateNetworkInterface",
+                    "ec2:DescribeNetworkInterfaces",
+                    "ec2:DeleteNetworkInterface",
+                    "ec2:AssignPrivateIpAddresses",
+                    "ec2:UnassignPrivateIpAddresses"
+                ]
+            )
+        )
+
+        self.setup_totp_handler.add_to_role_policy(
+            PolicyStatement(
+                effect=Effect.ALLOW,
+                resources=["*"],
+                actions=[
+                    "cognito:AssociateSoftwareToken"
+                ]
+            )
+        )
+
         # Get user details & alias
-        get_user_details_handler = lmb.Function(
+        self.get_user_details_handler = lmb.Function(
             scope=self,
             id=f"{STAGE}-get-user-details",
             function_name=f"{STAGE}-get-user-details",
@@ -406,44 +438,50 @@ class AuthenticationStack(cdk.Stack):
                 scope=self,
                 id="get-user-details-handler-role",
                 assumed_by=ServicePrincipal("lambda.amazonaws.com"),
-                inline_policies={
-                    "cognito-get-user-details":PolicyDocument(
-                        statements=[
-                            PolicyStatement(
-                                effect=Effect.DENY,
-                                actions=[
-                                    "dynamodb:*"
-                                ],
-                                resources=["*"]
-                            ),
-                            PolicyStatement(
-                                effect=Effect.ALLOW,
-                                actions=[
-                                    "dynamodb:GetItem"
-                                ],
-                                resources=["*"]
-                            ),
-                        ]
-                    )
-                },
                 managed_policies=[
                     ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaBasicExecutionRole"),
                     ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaVPCAccessExecutionRole"),
                 ]
             ),
-            #vpc=vpc_stack,
+            vpc=vpc_stack.vpc,
             timeout=cdk.Duration.minutes(15),
-            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/serverless-authentication/get-user-details")))
+            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/serverless-authentication/get-user-details"))
+        )
 
-        get_user_details_alias = lmb.Alias(
+        self.get_user_details_alias = lmb.Alias(
             scope=self,
-            version=get_user_details_handler.current_version,
+            version=self.get_user_details_handler.current_version,
             id=f"{STAGE}-get-user-details-alias",
             alias_name="get-user-details-alias"
         )
 
+        self.get_user_details_handler.add_to_role_policy(
+            PolicyStatement(
+                effect=Effect.DENY,
+                resources=["*"],
+                not_actions=[
+                    "dynamodb:GetItem",
+                    "ec2:CreateNetworkInterface",
+                    "ec2:DescribeNetworkInterfaces",
+                    "ec2:DeleteNetworkInterface",
+                    "ec2:AssignPrivateIpAddresses",
+                    "ec2:UnassignPrivateIpAddresses"
+                ]
+            )
+        )
+
+        self.get_user_details_handler.add_to_role_policy(
+            PolicyStatement(
+                effect=Effect.ALLOW,
+                resources=["*"],
+                actions=[
+                    "dynamodb:GetItem"
+                ]
+            )
+        )
+
         # Change password & alias
-        change_password_handler = lmb.Function(
+        self.change_password_handler = lmb.Function(
             scope=self,
             id=f"{STAGE}-change-password",
             function_name=f"{STAGE}-change-password",
@@ -453,44 +491,50 @@ class AuthenticationStack(cdk.Stack):
                 scope=self,
                 id="change-password-handler-role",
                 assumed_by=ServicePrincipal("lambda.amazonaws.com"),
-                inline_policies={
-                    "cognito-change-password":PolicyDocument(
-                        statements=[
-                            PolicyStatement(
-                                effect=Effect.DENY,
-                                actions=[
-                                    "cognito:*"
-                                ],
-                                resources=["*"]
-                            ),
-                            PolicyStatement(
-                                effect=Effect.ALLOW,
-                                actions=[
-                                    "cognito:ChangePassword"
-                                ],
-                                resources=["*"]
-                            ),
-                        ]
-                    )
-                },
                 managed_policies=[
                     ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaBasicExecutionRole"),
                     ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaVPCAccessExecutionRole"),
                 ]
             ),
-            #vpc=vpc_stack,
+            vpc=vpc_stack.vpc,
             timeout=cdk.Duration.minutes(15),
-            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/serverless-authentication/change-password")))
+            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/serverless-authentication/change-password"))
+        )
 
-        change_password_alias = lmb.Alias(
+        self.change_password_alias = lmb.Alias(
             scope=self,
-            version=change_password_handler.current_version,
+            version=self.change_password_handler.current_version,
             id=f"{STAGE}-change-password-alias",
             alias_name="change-password-alias"
         )
 
+        self.change_password_handler.add_to_role_policy(
+            PolicyStatement(
+                effect=Effect.DENY,
+                resources=["*"],
+                not_actions=[
+                    "cognito:ChangePassword",
+                    "ec2:CreateNetworkInterface",
+                    "ec2:DescribeNetworkInterfaces",
+                    "ec2:DeleteNetworkInterface",
+                    "ec2:AssignPrivateIpAddresses",
+                    "ec2:UnassignPrivateIpAddresses"
+                ]
+            )
+        )
+
+        self.change_password_handler.add_to_role_policy(
+            PolicyStatement(
+                effect=Effect.ALLOW,
+                resources=["*"],
+                actions=[
+                    "cognito:ChangePassword"
+                ]
+            )
+        )
+
         # Forgot password & alias
-        forgot_password_handler = lmb.Function(
+        self.forgot_password_handler = lmb.Function(
             scope=self,
             id=f"{STAGE}-forgot-password",
             function_name=f"{STAGE}-forgot-password",
@@ -500,44 +544,50 @@ class AuthenticationStack(cdk.Stack):
                 scope=self,
                 id="forgot-password-handler-role",
                 assumed_by=ServicePrincipal("lambda.amazonaws.com"),
-                inline_policies={
-                    "cognito-forgot-password":PolicyDocument(
-                        statements=[
-                            PolicyStatement(
-                                effect=Effect.DENY,
-                                actions=[
-                                    "cognito:*"
-                                ],
-                                resources=["*"]
-                            ),
-                            PolicyStatement(
-                                effect=Effect.ALLOW,
-                                actions=[
-                                    "cognito:ForgotPassword"
-                                ],
-                                resources=["*"]
-                            ),
-                        ]
-                    )
-                },
                 managed_policies=[
                     ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaBasicExecutionRole"),
                     ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaVPCAccessExecutionRole"),
                 ]
             ),
-            #vpc=vpc_stack,
+            vpc=vpc_stack.vpc,
             timeout=cdk.Duration.minutes(15),
-            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/serverless-authentication/forgot-password")))
+            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/serverless-authentication/forgot-password"))
+        )
 
-        forgot_password_alias = lmb.Alias(
+        self.forgot_password_alias = lmb.Alias(
             scope=self,
-            version=forgot_password_handler.current_version,
+            version=self.forgot_password_handler.current_version,
             id=f"{STAGE}-forgot-password-alias",
             alias_name="forgot-password-alias"
         )
 
+        self.forgot_password_handler.add_to_role_policy(
+            PolicyStatement(
+                effect=Effect.DENY,
+                resources=["*"],
+                not_actions=[
+                    "cognito:ForgotPassword",
+                    "ec2:CreateNetworkInterface",
+                    "ec2:DescribeNetworkInterfaces",
+                    "ec2:DeleteNetworkInterface",
+                    "ec2:AssignPrivateIpAddresses",
+                    "ec2:UnassignPrivateIpAddresses"
+                ]
+            )
+        )
+
+        self.forgot_password_handler.add_to_role_policy(
+            PolicyStatement(
+                effect=Effect.ALLOW,
+                resources=["*"],
+                actions=[
+                    "cognito:ForgotPassword"
+                ]
+            )
+        )
+
         # Confirm forgot password & alias
-        confirm_forgot_password_handler = lmb.Function(
+        self.confirm_forgot_password_handler = lmb.Function(
             scope=self,
             id=f"{STAGE}-confirm-forgot-password",
             function_name=f"{STAGE}-confirm-forgot-password",
@@ -547,44 +597,50 @@ class AuthenticationStack(cdk.Stack):
                 scope=self,
                 id="confirm-forgot-password-handler-role",
                 assumed_by=ServicePrincipal("lambda.amazonaws.com"),
-                inline_policies={
-                    "cognito-forgot-password":PolicyDocument(
-                        statements=[
-                            PolicyStatement(
-                                effect=Effect.DENY,
-                                actions=[
-                                    "cognito:*"
-                                ],
-                                resources=["*"]
-                            ),
-                            PolicyStatement(
-                                effect=Effect.ALLOW,
-                                actions=[
-                                    "cognito:ConfirmForgotPassword"
-                                ],
-                                resources=["*"]
-                            ),
-                        ]
-                    )
-                },
                 managed_policies=[
                     ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaBasicExecutionRole"),
                     ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaVPCAccessExecutionRole"),
                 ]
             ),
-            #vpc=vpc_stack,
+            vpc=vpc_stack.vpc,
             timeout=cdk.Duration.minutes(15),
-            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/serverless-authentication/confirm-forgot-password")))
+            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/serverless-authentication/confirm-forgot-password"))
+        )
 
-        confirm_forgot_password_alias = lmb.Alias(
+        self.confirm_forgot_password_alias = lmb.Alias(
             scope=self,
-            version=confirm_forgot_password_handler.current_version,
+            version=self.confirm_forgot_password_handler.current_version,
             id=f"{STAGE}-confirm-forgot-password-alias",
             alias_name="confirm-forgot-password-alias"
         )
 
+        self.confirm_forgot_password_handler.add_to_role_policy(
+            PolicyStatement(
+                effect=Effect.DENY,
+                resources=["*"],
+                not_actions=[
+                    "cognito:ConfirmForgotPassword",
+                    "ec2:CreateNetworkInterface",
+                    "ec2:DescribeNetworkInterfaces",
+                    "ec2:DeleteNetworkInterface",
+                    "ec2:AssignPrivateIpAddresses",
+                    "ec2:UnassignPrivateIpAddresses"
+                ]
+            )
+        )
+
+        self.confirm_forgot_password_handler.add_to_role_policy(
+            PolicyStatement(
+                effect=Effect.ALLOW,
+                resources=["*"],
+                actions=[
+                    "cognito:ConfirmForgotPassword"
+                ]
+            )
+        )
+
         # Resend confirmation code & alias
-        resend_confirmation_code_handler = lmb.Function(
+        self.resend_confirmation_code_handler = lmb.Function(
             scope=self,
             id=f"{STAGE}-resend-confirmation-code",
             function_name=f"{STAGE}-resend-confirmation-code",
@@ -594,40 +650,46 @@ class AuthenticationStack(cdk.Stack):
                 scope=self,
                 id="resend-confirmation-code-handler-role",
                 assumed_by=ServicePrincipal("lambda.amazonaws.com"),
-                inline_policies={
-                    "cognito-resend-confirmation-code":PolicyDocument(
-                        statements=[
-                            PolicyStatement(
-                                effect=Effect.DENY,
-                                actions=[
-                                    "cognito:*"
-                                ],
-                                resources=["*"]
-                            ),
-                            PolicyStatement(
-                                effect=Effect.ALLOW,
-                                actions=[
-                                    "cognito:ResendConfirmationCode"
-                                ],
-                                resources=["*"]
-                            ),
-                        ]
-                    )
-                },
                 managed_policies=[
                     ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaBasicExecutionRole"),
                     ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaVPCAccessExecutionRole"),
                 ]
             ),
-            #vpc=vpc_stack,
+            vpc=vpc_stack.vpc,
             timeout=cdk.Duration.minutes(15),
-            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/serverless-authentication/resend-confirmation-code")))
+            code=lmb.Code.from_asset(path.join(current_directory, "lambdas/serverless-authentication/resend-confirmation-code"))
+        )
 
-        resend_confirmation_code_alias = lmb.Alias(
+        self.resend_confirmation_code_alias = lmb.Alias(
             scope=self,
-            version=resend_confirmation_code_handler.current_version,
+            version=self.resend_confirmation_code_handler.current_version,
             id=f"{STAGE}-resend-confirmation-code-alias",
             alias_name="resend-confirmation-code-alias"
+        )
+
+        self.resend_confirmation_code_handler.add_to_role_policy(
+            PolicyStatement(
+                effect=Effect.DENY,
+                resources=["*"],
+                not_actions=[
+                    "cognito:ResendConfirmationCode",
+                    "ec2:CreateNetworkInterface",
+                    "ec2:DescribeNetworkInterfaces",
+                    "ec2:DeleteNetworkInterface",
+                    "ec2:AssignPrivateIpAddresses",
+                    "ec2:UnassignPrivateIpAddresses"
+                ]
+            )
+        )
+
+        self.resend_confirmation_code_handler.add_to_role_policy(
+            PolicyStatement(
+                effect=Effect.ALLOW,
+                resources=["*"],
+                actions=[
+                    "cognito:ResendConfirmationCode"
+                ]
+            )
         )
 
         ######################################
@@ -661,14 +723,14 @@ class AuthenticationStack(cdk.Stack):
         )
 
         # Signup lambda integration
-        signup = self.api_gateway.root.add_resource("signup")
-        signup_lambda_integration = LambdaIntegration(
-            handler=signup_handler,
+        self.signup = self.api_gateway.root.add_resource("signup")
+        self.signup_lambda_integration = LambdaIntegration(
+            handler=self.signup_handler,
             allow_test_invoke=True,
             proxy=False,
             # request_templates={"application/json":str(load(open(path.join(current_directory, "lambdas/signup/schema.json"), "r")))}
         )
-        signup.add_method("POST", signup_lambda_integration)
+        self.signup.add_method("POST", self.signup_lambda_integration)
         self.api_gateway.add_model(
             id=f"{STAGE}-signup",
             model_name=f"{STAGE}Signup",
@@ -711,14 +773,14 @@ class AuthenticationStack(cdk.Stack):
         )
 
         # Confirm signup lambda integration
-        confirm_signup = self.api_gateway.root.add_resource("confirm-signup")
-        confirm_signup_lambda_integration = LambdaIntegration(
-            handler=confirm_signup_handler,
+        self.confirm_signup = self.api_gateway.root.add_resource("confirm-signup")
+        self.confirm_signup_lambda_integration = LambdaIntegration(
+            handler=self.confirm_signup_handler,
             allow_test_invoke=True,
             proxy=False,
             # request_templates={"application/json":str(load(open(path.join(current_directory, "lambdas/confirm-signup/schema.json"), "r")))}
         )
-        confirm_signup.add_method("POST", confirm_signup_lambda_integration)
+        self.confirm_signup.add_method("POST", self.confirm_signup_lambda_integration)
         self.api_gateway.add_model(
             id=f"{STAGE}-confirm-signup",
             model_name=f"{STAGE}ConfirmSignup",
@@ -764,14 +826,14 @@ class AuthenticationStack(cdk.Stack):
         )
 
         # Signin lambda integration
-        signin = self.api_gateway.root.add_resource("signin")
-        signin_lambda_integration = LambdaIntegration(
-            handler=signin_handler,
+        self.signin = self.api_gateway.root.add_resource("signin")
+        self.signin_lambda_integration = LambdaIntegration(
+            handler=self.signin_handler,
             allow_test_invoke=True,
             proxy=False,
             # request_templates={"application/json":str(load(open(path.join(current_directory, "lambdas/signin/schema.json"), "r")))}
         )
-        signin.add_method("POST", signin_lambda_integration)
+        self.signin.add_method("POST", self.signin_lambda_integration)
         self.api_gateway.add_model(
             id=f"{STAGE}-signin",
             model_name=f"{STAGE}Signin",
@@ -800,14 +862,14 @@ class AuthenticationStack(cdk.Stack):
         )
 
         # Confirm signin lambda integration
-        confirm_signin = self.api_gateway.root.add_resource("confirm-signin")
-        confirm_signin_lambda_integration = LambdaIntegration(
-            handler=confirm_signin_handler,
+        self.confirm_signin = self.api_gateway.root.add_resource("confirm-signin")
+        self.confirm_signin_lambda_integration = LambdaIntegration(
+            handler=self.confirm_signin_handler,
             allow_test_invoke=True,
             proxy=False,
             # request_templates={"application/json":str(load(open(path.join(current_directory, "lambdas/confirm-signin/schema.json"),"r")))}
         )
-        confirm_signin.add_method("POST", confirm_signin_lambda_integration)
+        self.confirm_signin.add_method("POST", self.confirm_signin_lambda_integration)
         self.api_gateway.add_model(
             id=f"{STAGE}-confirm-signin",
             model_name=f"{STAGE}ConfirmSignin",
@@ -839,14 +901,14 @@ class AuthenticationStack(cdk.Stack):
         )
 
         # Setup TOTP lambda integration
-        setup_totp = self.api_gateway.root.add_resource("setup-totp")
-        setup_totp_lambda_integration = LambdaIntegration(
-            handler=setup_totp_handler,
+        self.setup_totp = self.api_gateway.root.add_resource("setup-totp")
+        self.setup_totp_lambda_integration = LambdaIntegration(
+            handler=self.setup_totp_handler,
             allow_test_invoke=True,
             proxy=False,
             # request_templates={"application/json":str(load(open(path.join(current_directory, "lambdas/setup-totp/schema.json"),"r")))}
         )
-        setup_totp.add_method("POST", setup_totp_lambda_integration)
+        self.setup_totp.add_method("POST", self.setup_totp_lambda_integration)
         self.api_gateway.add_model(
             id=f"{STAGE}-setup-totp",
             model_name=f"{STAGE}SetupTotp",
@@ -869,14 +931,14 @@ class AuthenticationStack(cdk.Stack):
         )
 
         # Get user details lambda integration
-        get_user_details = self.api_gateway.root.add_resource("get-user-details")
-        get_user_details_lambda_integration = LambdaIntegration(
-            handler=get_user_details_handler,
+        self.get_user_details = self.api_gateway.root.add_resource("get-user-details")
+        self.get_user_details_lambda_integration = LambdaIntegration(
+            handler=self.get_user_details_handler,
             allow_test_invoke=True,
             proxy=False,
             # request_templates={"application/json":str(load(open(path.join(current_directory, "lambdas/get-user-details/schema.json"),"r")))}
         )
-        get_user_details.add_method("POST", get_user_details_lambda_integration)
+        self.get_user_details.add_method("POST", self.get_user_details_lambda_integration)
         self.api_gateway.add_model(
             id=f"{STAGE}-get-user-details",
             model_name=f"{STAGE}GetUserDetails",
@@ -893,14 +955,14 @@ class AuthenticationStack(cdk.Stack):
         )
 
         # Change password lambda integration
-        change_password = self.api_gateway.root.add_resource("change-password")
-        change_password_lambda_integration = LambdaIntegration(
-            handler=change_password_handler,
+        self.change_password = self.api_gateway.root.add_resource("change-password")
+        self.change_password_lambda_integration = LambdaIntegration(
+            handler=self.change_password_handler,
             allow_test_invoke=True,
             proxy=False,
             # request_templates={"application/json":str(load(open(path.join(current_directory, "lambdas/change-password/schema.json"),"r")))}
         )
-        change_password.add_method("POST", change_password_lambda_integration)
+        self.change_password.add_method("POST", self.change_password_lambda_integration)
         self.api_gateway.add_model(
             id=f"{STAGE}-change-password",
             model_name=f"{STAGE}ChangePassword",
@@ -923,14 +985,14 @@ class AuthenticationStack(cdk.Stack):
         )
 
         # Forgot password lambda integration
-        forgot_password = self.api_gateway.root.add_resource("forgot-password")
-        forgot_password_lambda_integration = LambdaIntegration(
-            handler=forgot_password_handler,
+        self.forgot_password = self.api_gateway.root.add_resource("forgot-password")
+        self.forgot_password_lambda_integration = LambdaIntegration(
+            handler=self.forgot_password_handler,
             allow_test_invoke=True,
             proxy=False,
             # request_templates={"application/json":str(load(open(path.join(current_directory, "lambdas/forgot-password/schema.json"),"r")))}
         )
-        forgot_password.add_method("POST", forgot_password_lambda_integration)
+        self.forgot_password.add_method("POST", self.forgot_password_lambda_integration)
         self.api_gateway.add_model(
             id=f"{STAGE}-forgot-password",
             model_name=f"{STAGE}ForgotPassword",
@@ -953,14 +1015,14 @@ class AuthenticationStack(cdk.Stack):
         )
 
         # Confirm forgot password lambda integration
-        confirm_forgot_password = self.api_gateway.root.add_resource("confirm-forgot-password")
-        confirm_forgot_password_lambda_integration = LambdaIntegration(
-            handler=confirm_forgot_password_handler,
+        self.confirm_forgot_password = self.api_gateway.root.add_resource("confirm-forgot-password")
+        self.confirm_forgot_password_lambda_integration = LambdaIntegration(
+            handler=self.confirm_forgot_password_handler,
             allow_test_invoke=True,
             proxy=False,
             # request_templates={"application/json":str(load(open(path.join(current_directory, "lambdas/confirm-forgot-password/schema.json"),"r")))}
         )
-        confirm_forgot_password.add_method("POST", confirm_forgot_password_lambda_integration)
+        self.confirm_forgot_password.add_method("POST", self.confirm_forgot_password_lambda_integration)
         self.api_gateway.add_model(
             id=f"{STAGE}-confirm-forgot-password",
             model_name=f"{STAGE}ConfirmForgotPassword",
@@ -989,14 +1051,14 @@ class AuthenticationStack(cdk.Stack):
         )
 
         # Resend confirmation code lambda integration
-        resend_confirmation_code = self.api_gateway.root.add_resource("resend-confirmation-code")
-        resend_confirmation_code_lambda_integration = LambdaIntegration(
-            handler=resend_confirmation_code_handler,
+        self.resend_confirmation_code = self.api_gateway.root.add_resource("resend-confirmation-code")
+        self.resend_confirmation_code_lambda_integration = LambdaIntegration(
+            handler=self.resend_confirmation_code_handler,
             allow_test_invoke=True,
             proxy=False,
             # request_templates={"application/json":str(load(open(path.join(current_directory, "lambdas/resend-confirmation-code/schema.json"),"r")))}
         )
-        resend_confirmation_code.add_method("POST", resend_confirmation_code_lambda_integration)
+        self.resend_confirmation_code.add_method("POST", self.resend_confirmation_code_lambda_integration)
         self.api_gateway.add_model(
             id=f"{STAGE}-resend-confirmation-code",
             model_name=f"{STAGE}ResendConfirmationCode",
@@ -1025,16 +1087,16 @@ class AuthenticationStack(cdk.Stack):
 
         # Zipped alias name & function
         zipped = [
-            (f"{STAGE}-signup-alias", signup_alias),
-            (f"{STAGE}-confirm-signup-alias", confirm_signup_alias),
-            (f"{STAGE}-signin-alias", signin_alias),
-            (f"{STAGE}-confirm-signin-alias", confirm_signin_alias),
-            (f"{STAGE}-setup-totp-alias", setup_totp_alias),
-            (f"{STAGE}-get-user-details-alias", get_user_details_alias),
-            (f"{STAGE}-change-password-alias", change_password_alias),
-            (f"{STAGE}-forgot-password-alias", forgot_password_alias),
-            (f"{STAGE}-confirm-forgot-password-alias", confirm_forgot_password_alias),
-            (f"{STAGE}-resend-confirmation-code-alias", resend_confirmation_code_alias)
+            (f"{STAGE}-signup-alias", self.signup_alias),
+            (f"{STAGE}-confirm-signup-alias", self.confirm_signup_alias),
+            (f"{STAGE}-signin-alias", self.signin_alias),
+            (f"{STAGE}-confirm-signin-alias", self.confirm_signin_alias),
+            (f"{STAGE}-setup-totp-alias", self.setup_totp_alias),
+            (f"{STAGE}-get-user-details-alias", self.get_user_details_alias),
+            (f"{STAGE}-change-password-alias", self.change_password_alias),
+            (f"{STAGE}-forgot-password-alias", self.forgot_password_alias),
+            (f"{STAGE}-confirm-forgot-password-alias", self.confirm_forgot_password_alias),
+            (f"{STAGE}-resend-confirmation-code-alias", self.resend_confirmation_code_alias)
         ]
 
         for name, alias in zipped:
