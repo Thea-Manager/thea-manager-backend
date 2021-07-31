@@ -80,6 +80,7 @@ jobs:
       - name: Configure AWS Credentials
         id: config-aws-creds
         uses: aws-actions/configure-aws-credentials@v1
+        if: ${{ always() }}
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -119,18 +120,18 @@ jobs:
        id: checkout-repository
        uses: actions/checkout@v2
        
-     # Initialize CodeQL
-     - name: Initialize CodeQL
-       id: init-codeql
-       uses: github/codeql-action/init@v1
-       with:
-        lanugages: python
-        queries: security-and-quality
+#      # Initialize CodeQL
+#      - name: Initialize CodeQL
+#        id: init-codeql
+#        uses: github/codeql-action/init@v1
+#        with:
+#         lanugages: python
+#         queries: security-and-quality
        
-     # Perform CodeQL Analysis
-     - name: Perform CodeQL Analysis
-       id: analyze-codeql
-       uses: github/codeql-action/analyze@v1
+#      # Perform CodeQL Analysis
+#      - name: Perform CodeQL Analysis
+#        id: analyze-codeql
+#        uses: github/codeql-action/analyze@v1
     
      # Perform Container Scan
      - name: Build docker image
