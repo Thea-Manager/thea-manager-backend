@@ -99,6 +99,10 @@ jobs:
         with:
           sarif_file: codeguru-results.sarif.json
 
+      ######################################
+      #        Automated unit testing      #
+      ######################################
+
       # # Run automated test scripts
       # - name: Test code with pytest
       #   run: |
