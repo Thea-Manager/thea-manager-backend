@@ -34,7 +34,7 @@ jobs:
         uses: actions/checkout@v2
 
       ######################################
-      #           Install Python           #
+      #    Install Python & Dependencies   #
       ######################################
 
       # Set up python 3.8.2
@@ -64,8 +64,15 @@ jobs:
 
       # Linting Python code
       - name: Lint with flake8
+
+
+      - name: Setup flake8 annotations
+        uses: rbialon/flake8-annotations@v1
+
+      - name: Lint with flake8
         working-directory: ${{ env.working-directory }}
-        run : |
+        run: |
+          pip install flake8
           # stop the build if there are Python syntax errors or undefined names
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 
@@ -76,29 +83,29 @@ jobs:
       #        Automated code review       #
       ######################################
 
-      # Configure AWS Credentials
-      - name: Configure AWS Credentials
-        id: config-aws-creds
-        uses: aws-actions/configure-aws-credentials@v1
-        if: ${{ always() }}
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.CODE_GURU_REGION }}  # Region to access CodeGuru 
+      # # Configure AWS Credentials
+      # - name: Configure AWS Credentials
+      #   id: config-aws-creds
+      #   uses: aws-actions/configure-aws-credentials@v1
+      #   if: ${{ always() }}
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: ${{ secrets.CODE_GURU_REGION }}  # Region to access CodeGuru 
 
-      # Add CodeGuru Reviewer Action
-      - name: CodeGuru Reviewer
-        uses: aws-actions/codeguru-reviewer@v1.1
-        with:
-          build_path: target # build artifact(s) directory
-          s3_bucket: codeguru-reviewer-my-bucket  # S3 Bucket with "codeguru-reviewer-*" prefix
+      # # Add CodeGuru Reviewer Action
+      # - name: CodeGuru Reviewer
+      #   uses: aws-actions/codeguru-reviewer@v1.1
+      #   with:
+      #     build_path: target # build artifact(s) directory
+      #     s3_bucket: codeguru-reviewer-my-bucket  # S3 Bucket with "codeguru-reviewer-*" prefix
 
-      # Upload results into GitHub
-      - name: Upload review result
-        if: ${{ github.event_name != 'push' }}
-        uses: github/codeql-action/upload-sarif@v1
-        with:
-          sarif_file: codeguru-results.sarif.json
+      # # Upload results into GitHub
+      # - name: Upload review result
+      #   if: ${{ github.event_name != 'push' }}
+      #   uses: github/codeql-action/upload-sarif@v1
+      #   with:
+      #     sarif_file: codeguru-results.sarif.json
 
       ######################################
       #        Automated unit testing      #
