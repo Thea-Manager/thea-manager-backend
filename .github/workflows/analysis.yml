@@ -1,0 +1,83 @@
+name: Analysis
+
+env:
+  BACKEND_SOURCE_PATH: "./src/backend"
+  DOCKER_IMAGE: "thea-manager"
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - ${{ env.BACKEND_SOURCE_PATH }}
+  schedule:
+    - cron: "0 0 * * 2"
+  workflow_dispatch:
+
+jobs:
+#   code-guru:
+#     name: CodeGuru Reviewer
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout repo
+#         uses: actions/checkout@v2
+
+#       - name: Configure AWS Credentials
+#         id: config-aws-creds
+#         uses: aws-actions/configure-aws-credentials@v1
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-region: ${{ secrets.CODE_GURU_REGION }} # Region to access CodeGuru
+
+#       - name: CodeGuru Reviewer
+#         uses: aws-actions/codeguru-reviewer@v1.1
+#         with:
+#           build_path: target # build artifact(s) directory
+#           s3_bucket: codeguru-reviewer-my-bucket # S3 Bucket with 'codeguru-reviewer-*' prefix
+
+#       - name: Upload review result
+#         if: ${{ github.event_name == 'workflow_dispatch' }}
+#         uses: github/codeql-action/upload-sarif@v1
+#         with:
+#           sarif_file: codeguru-results.sarif.json
+
+  codeql:
+    name: CodeQL
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v1
+        with:
+          lanugages: python
+          queries: security-and-quality
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v1
+
+  docker-analysis-backend:
+    name: Docker Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Build docker image
+        working-directory: ${{ env.BACKEND_SOURCE_PATH }}
+        run: docker build -t ${{ env.DOCKER_IMAGE }} .
+
+      - name: Scan docker image for vulnerabilities
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: ${{ env.DOCKER_IMAGE }}
+          args: --file=${{ env.BACKEND_SOURCE_PATH }}/server/Dockerfile
+
+      - name: Upload scan result
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: snyk.sarif
