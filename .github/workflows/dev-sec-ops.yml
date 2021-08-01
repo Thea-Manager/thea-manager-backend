@@ -62,10 +62,6 @@ jobs:
       #          Lint Python code          #
       ######################################
 
-      # Linting Python code
-      - name: Lint with flake8
-
-
       - name: Setup flake8 annotations
         uses: rbialon/flake8-annotations@v1
 
