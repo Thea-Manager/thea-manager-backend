@@ -1,0 +1,72 @@
+name: Prod - Deploy
+
+on:
+  pull_request:
+    branches:
+      - master
+      - main
+    types: [closed]
+
+jobs:
+  context:
+    runs-on: ubuntu-latest
+    outputs:
+      should-publish: ${{ steps.context.outputs.should-publish }}
+      release-type: ${{ steps.context.outputs.release-type }}
+      next-version: ${{ steps.increment-version.outputs.next-version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Establish context
+        id: context
+        uses: dolittle/establish-context-action@v2
+
+      - name: Increment version
+        id: increment-version
+        if: ${{ steps.context.outputs.should-publish == 'true' }}
+        uses: dolittle/increment-version-action@v2
+        with:
+          version: ${{ steps.context.outputs.current-version }}
+          release-type: ${{ steps.context.outputs.release-type }}
+
+      - name: Changelog
+        if: ${{ steps.context.outputs.should-publish == 'true'}}
+        uses: dolittle/add-to-changelog-action@v2
+        with:
+          version: ${{ steps.increment-version.outputs.next-version }}
+          body: ${{ steps.context.outputs.pr-body }}
+          pr-url: ${{ steps.context.outputs.pr-url }}
+          changelog-path: CHANGELOG.md
+          user-email: your@email.com
+          user-name: your-username
+
+      - name: Create GitHub Release
+        if: ${{ steps.context.outputs.should-publish == 'true'}}
+        uses: dolittle/github-release-action@v2
+        with:
+          version: ${{ steps.increment-version.outputs.next-version }}
+          body: ${{ steps.context.outputs.pr-body }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: context
+    if: ${{ needs.context.outputs.should-publish == 'true' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      ## Do deployment here
+
+  scan:
+    runs-on: ubuntu-latest
+    needs: context
+    if: ${{ needs.context.outputs.should-publish == 'true' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Trigger analysis
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: Analysis
+          token: ${{ secrets.PERSONAL_TOKEN }}
