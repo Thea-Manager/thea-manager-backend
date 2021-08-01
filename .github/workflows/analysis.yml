@@ -4,13 +4,13 @@ env:
   BACKEND_SOURCE_PATH: "./src/backend"
   DOCKER_IMAGE: "thea-manager"
 on:
-#   push:
-#     branches:
-#       - "**"
-#     paths:
-#       - ${{ env.BACKEND_SOURCE_PATH }}
-#   schedule:
-#     - cron: "0 0 * * 2"
+  push:
+    branches:
+      - "**"
+    paths:
+      - ${{ env.BACKEND_SOURCE_PATH }}
+  schedule:
+    - cron: "0 0 * * 2"
   workflow_dispatch:
 
 jobs:
