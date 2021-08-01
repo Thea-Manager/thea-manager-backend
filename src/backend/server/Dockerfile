@@ -5,6 +5,15 @@
 # Pull verified base python image from dockerhub
 FROM python:3.9-alpine3.14 as build
 
+# Upgrade APK tools to mitigate CVE-2021-36159 Vulnerability
+RUN apk add --upgrade apk-tools 
+
+# Update package indexes
+RUN apk update
+
+# Update KRB5 serveer to mitigate CVE-2021-36222 Vulnerability
+RUN apk add --upgrade krb5-server
+
 # Create app directory & make it current workdir
 COPY . /app
 WORKDIR /app
@@ -19,6 +28,15 @@ RUN pip install -r requirements.txt
 
 # Pull Python3 distroless image
 FROM python:3.9-alpine3.14 as release
+
+# Upgrade APK tools to mitigate CVE-2021-36159 Vulnerability
+RUN apk add --upgrade apk-tools
+
+# Update package indexes
+RUN apk update
+
+# Update KRB5 serveer to mitigate CVE-2021-36222 Vulnerability
+RUN apk add --upgrade krb5-server
 
 # Add non-root user
 RUN adduser -D -s /bin/false thea-worker
