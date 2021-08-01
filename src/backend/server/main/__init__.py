@@ -12,15 +12,16 @@ from flask_cors import CORS
 #                        Create app instance
 # ---------------------------------------------------------------
 
+
 # Create application
 def create_app():
     """
-        Create Flask application
+    Create Flask application
 
-        Returns
-        -------
-            application
-                Flask application object
+    Returns
+    -------
+        application
+            Flask application object
     """
 
     # Create Flask app object

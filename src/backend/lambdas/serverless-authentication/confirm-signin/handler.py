@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------
 #                           Imports
 # ---------------------------------------------------------------
- 
+
 # Native imports
 from re import sub
 
@@ -19,206 +19,220 @@ from ..utils import exception_handler, compute_secret_hash
 # Declare boto3 cognito client
 cognito = client("cognito-idp")
 
+
 # Intiate signin
 @exception_handler
-def confirm_signin(client_id: str, client_secret: str, username: str, challenge_name: str, session_token: str, mfa_code: str):
+def confirm_signin(
+    client_id: str,
+    client_secret: str,
+    username: str,
+    challenge_name: str,
+    session_token: str,
+    mfa_code: str,
+):
     """
-        Authenticates users by ingesting MFA confirmation as part of the sign in process 
-        to verify user account
+    Authenticates users by ingesting MFA confirmation as part of the sign in process
+    to verify user account
 
-        Parameters:
-        -----------
+    Parameters:
+    -----------
 
-            - client_id: str [required]
-                cognito unique client ID
+        - client_id: str [required]
+            cognito unique client ID
 
-            - client_secret: str [required]
-                cognito unique client secret
+        - client_secret: str [required]
+            cognito unique client secret
 
-            - username: str [required]
-                cognito username
-                
-            - challenge_name: str [required]
-                cognito challenge MFA authentication protocol
+        - username: str [required]
+            cognito username
 
-            - session_token: str [required]
-                unique session token pertaining to user attempting to sign up
+        - challenge_name: str [required]
+            cognito challenge MFA authentication protocol
 
-            - mfa_code: str [required]
-                mfa code
+        - session_token: str [required]
+            unique session token pertaining to user attempting to sign up
 
-        Returns:
-        --------
+        - mfa_code: str [required]
+            mfa code
 
-            - Response:
-                type: dict
-                description: object containinig user access token, refresh token, and id token
+    Returns:
+    --------
 
-            - http_status_code:
-                type: int
-                description: http server status code
+        - Response:
+            type: dict
+            description: object containinig user access token, refresh token, and id token
 
-        Raises:
-        ------
+        - http_status_code:
+            type: int
+            description: http server status code
 
-            - InternalErrorException
-                Internal error
-            
-            - InvalidParameterException
-                Invalid api parameters
+    Raises:
+    ------
 
-            - InvalidPasswordException
-                Password did not conform with password policy
+        - InternalErrorException
+            Internal error
 
-            - TooManyRequestsException
-                API requests limit exceeded
+        - InvalidParameterException
+            Invalid api parameters
 
-            - NotAuthorizedException
-                Not authorized to perform action
+        - InvalidPasswordException
+            Password did not conform with password policy
 
-            - PasswordResetRequiredException
-                Password reset is required
+        - TooManyRequestsException
+            API requests limit exceeded
 
-            - ResourceNotFoundException
-                User pool or cognito app client doesn't exist
+        - NotAuthorizedException
+            Not authorized to perform action
 
-            - UserNotConfirmedException
-                Cognito user not confirmed
+        - PasswordResetRequiredException
+            Password reset is required
 
-            - UserNotFoundException
-                Cognito user does not exist
+        - ResourceNotFoundException
+            User pool or cognito app client doesn't exist
 
-            - CodeMismatchException:
-                Incorrect confirmation code
+        - UserNotConfirmedException
+            Cognito user not confirmed
 
-            - ExpiredCodeException
-                Confirmation code expired
-            
-            - UnexpectedLambdaException
-                Unexpected exception with AWS Lambda service
+        - UserNotFoundException
+            Cognito user does not exist
 
-            - UserLambdaValidationException
-                User validation exception
+        - CodeMismatchException:
+            Incorrect confirmation code
 
-            - InvalidLambdaResponseException
-                Invalid lambda response
-    
-            - InvalidUserPoolConfigurationException:
-                Invalid user pool configuration
+        - ExpiredCodeException
+            Confirmation code expired
 
-            - MFAMethodNotFoundException:
-                MFA method not found
+        - UnexpectedLambdaException
+            Unexpected exception with AWS Lambda service
 
-            - InvalidSmsRoleAccessPolicyException:
-                Role provided for SMS configuration does not have permission to publish using Amazon SNS
+        - UserLambdaValidationException
+            User validation exception
 
-            - InvalidSmsRoleTrustRelationshipException
-                Invalid trust relationship with role provided with SMS configuration
-    
-            - AliasExistsException:
-                Alias exists for another account
+        - InvalidLambdaResponseException
+            Invalid lambda response
 
-            - SoftwareTokenMFANotFoundException:
-                Software TOTP MFA not enabled for user pool
+        - InvalidUserPoolConfigurationException:
+            Invalid user pool configuration
+
+        - MFAMethodNotFoundException:
+            MFA method not found
+
+        - InvalidSmsRoleAccessPolicyException:
+            Role provided for SMS configuration does not have permission to publish using Amazon SNS
+
+        - InvalidSmsRoleTrustRelationshipException
+            Invalid trust relationship with role provided with SMS configuration
+
+        - AliasExistsException:
+            Alias exists for another account
+
+        - SoftwareTokenMFANotFoundException:
+            Software TOTP MFA not enabled for user pool
     """
-    
+
     if challenge_name == "SMS_MFA":
         response = cognito.respond_to_auth_challenge(
-            ClientId = client_id,
-            ChallengeName = "SMS_MFA",
-            Session = session_token,
-            ChallengeResponses = {
+            ClientId=client_id,
+            ChallengeName="SMS_MFA",
+            Session=session_token,
+            ChallengeResponses={
                 "SMS_MFA_CODE": mfa_code,
                 "USERNAME": username,
-                "SECRET_HASH": compute_secret_hash(client_id, client_secret, username)
-        })
-            
+                "SECRET_HASH": compute_secret_hash(client_id, client_secret, username),
+            },
+        )
+
     if challenge_name == "SOFTWARE_TOKEN_MFA":
         response = cognito.respond_to_auth_challenge(
-            ClientId = client_id,
-            ChallengeName = "SOFTWARE_TOKEN_MFA",
-            Session = session_token,
-            ChallengeResponses = {
+            ClientId=client_id,
+            ChallengeName="SOFTWARE_TOKEN_MFA",
+            Session=session_token,
+            ChallengeResponses={
                 "SOFTWARE_TOKEN_MFA_CODE": mfa_code,
                 "USERNAME": username,
-                "SECRET_HASH": compute_secret_hash(client_id, client_secret, username)
-            })
-            
-    return response["AuthenticationResult"], response['ResponseMetadata']['HTTPStatusCode']
-                
+                "SECRET_HASH": compute_secret_hash(client_id, client_secret, username),
+            },
+        )
+
+    return (
+        response["AuthenticationResult"],
+        response["ResponseMetadata"]["HTTPStatusCode"],
+    )
+
+
 @exception_handler
 def get_user_details(access_token: str):
     """
-        Authenticats users by ingesting MFA confirmation as part of the sign in process 
-        to verify user account
+    Authenticats users by ingesting MFA confirmation as part of the sign in process
+    to verify user account
 
-        Parameters:
-        -----------
+    Parameters:
+    -----------
 
-            - access_token: str [required]
-                description: unique access token pertaining to user attempting to get user details
-           
-        Returns:
-        --------
+        - access_token: str [required]
+            description: unique access token pertaining to user attempting to get user details
 
-            - Response:
-                type: dict
-                description: object containinig user access token, refresh token, and id token
+    Returns:
+    --------
 
-            - http_status_code:
-                type: int
-                description: http server status code
+        - Response:
+            type: dict
+            description: object containinig user access token, refresh token, and id token
 
-        Raises:
-        ------
+        - http_status_code:
+            type: int
+            description: http server status code
 
-            - InternalErrorException
-                Internal error
-            
-            - InvalidParameterException
-                Invalid api parameters
+    Raises:
+    ------
 
-            - InvalidPasswordException
-                Password did not conform with password policy
+        - InternalErrorException
+            Internal error
 
-            - LimitExceededException
-                Change password requests limit exceeded
+        - InvalidParameterException
+            Invalid api parameters
 
-            - TooManyRequestsException
-                API requests limit exceeded
+        - InvalidPasswordException
+            Password did not conform with password policy
 
-            - NotAuthorizedException
-                Not authorized to perform action
+        - LimitExceededException
+            Change password requests limit exceeded
 
-            - ResourceNotFoundException
-                User pool or cognito app client doesn't exist
+        - TooManyRequestsException
+            API requests limit exceeded
 
-            - UserNotConfirmedException
-                Cognito user not confirmed
+        - NotAuthorizedException
+            Not authorized to perform action
 
-            - UserNotFoundException
-                Cognito user does not exist
+        - ResourceNotFoundException
+            User pool or cognito app client doesn't exist
 
-            - UnexpectedLambdaException
-                Unexpected exception with AWS Lambda service
+        - UserNotConfirmedException
+            Cognito user not confirmed
 
-            - UserLambdaValidationException
-                User validation exception
+        - UserNotFoundException
+            Cognito user does not exist
 
-            - CodeMismatchException:
-                Incorrect confirmation code
+        - UnexpectedLambdaException
+            Unexpected exception with AWS Lambda service
 
-            - ExpiredCodeException
-                Confirmation code expired
-            
-            - TooManyFailedAttemptsException
-                Too many failed attempts
+        - UserLambdaValidationException
+            User validation exception
 
-            - InvalidLambdaResponseException
-                Invalid lambda response
-    """ 
-    return cognito.get_user(AccessToken = access_token)
-    
+        - CodeMismatchException:
+            Incorrect confirmation code
+
+        - ExpiredCodeException
+            Confirmation code expired
+
+        - TooManyFailedAttemptsException
+            Too many failed attempts
+
+        - InvalidLambdaResponseException
+            Invalid lambda response
+    """
+    return cognito.get_user(AccessToken=access_token)
+
 
 # ---------------------------------------------------------------
 #                           Dynamo Utils
@@ -227,32 +241,33 @@ def get_user_details(access_token: str):
 # Declare boto3 dynamodb client
 dynamodb = resource("dynamodb")
 
+
 def create_item(table_name: str, item: dict):
     """
-        Boto3 DynamoDB create operation. This enables the creation and uploading
-        of a DynamoDB NoSQL object.
+    Boto3 DynamoDB create operation. This enables the creation and uploading
+    of a DynamoDB NoSQL object.
 
-        Parameters:
-        -----------
+    Parameters:
+    -----------
 
-            - table_name: 
-                type: str [required]
-                description: DynamoDB table name
+        - table_name:
+            type: str [required]
+            description: DynamoDB table name
 
-            - item:
-                type: dict [required]
-                description: Dictonary based object to be pushed DynamoDB
+        - item:
+            type: dict [required]
+            description: Dictonary based object to be pushed DynamoDB
 
-        Returns:
-        --------
+    Returns:
+    --------
 
-            - response:
-                type: str or None
-                description: server response data
+        - response:
+            type: str or None
+            description: server response data
 
-            - http_staus_code:
-                type: int
-                descrption: HTTP server response
+        - http_staus_code:
+            type: int
+            descrption: HTTP server response
     """
 
     # Target DynamoDB table
@@ -260,13 +275,16 @@ def create_item(table_name: str, item: dict):
 
     # Push to DynamoDB
     try:
-        response = table.put_item(Item = item)
+        response = table.put_item(Item=item)
     except (ClientError, WaiterError, ParamValidationError, AttributeError) as e:
-        return str(e.response['Error']['Code']), e.response['ResponseMetadata']['HTTPStatusCode']
+        return (
+            str(e.response["Error"]["Code"]),
+            e.response["ResponseMetadata"]["HTTPStatusCode"],
+        )
     except Exception as e:
         return str(e), 500
     else:
-        return None, response['ResponseMetadata']['HTTPStatusCode']
+        return None, response["ResponseMetadata"]["HTTPStatusCode"]
 
 
 # ---------------------------------------------------------------
@@ -275,7 +293,7 @@ def create_item(table_name: str, item: dict):
 
 
 def handler(event, context):
-    
+
     # Ingest required params
     kwargs = {
         "mfa_code": event["mfaCode"],
@@ -285,17 +303,21 @@ def handler(event, context):
         "client_secret": event["clientSecret"],
         "challenge_name": event["challengeName"],
     }
-    
+
     # Confirm signin
     response, code = confirm_signin(**kwargs)
-    
+
     if code == 200:
         new_user_details = {}
         authenticated = True
-        tokens = {"accessToken": response["AccessToken"], "refreshToken": response["RefreshToken"], "idToken": response["IdToken"]}
+        tokens = {
+            "accessToken": response["AccessToken"],
+            "refreshToken": response["RefreshToken"],
+            "idToken": response["IdToken"],
+        }
         for i in get_user_details(tokens["accessToken"])["UserAttributes"]:
             i = list(i.values())
-            
+
             if i[0] == "name":
                 new_user_details["displayName"] = i[1]
             elif i[0] == "type":
@@ -303,17 +325,14 @@ def handler(event, context):
             elif i[0] == "sub":
                 new_user_details["userId"] = i[1]
             else:
-                new_user_details[sub("custom:", "", i[0])] = i[1]               
+                new_user_details[sub("custom:", "", i[0])] = i[1]
     else:
         new_user_details = {}
         authenticated = False
         tokens = {"accessToken": "", "refreshToken": "", "idToken": ""}
 
     return {
-        'statusCode': code,
-        'data': {
-            "tokens": tokens,
-            "userDetails": new_user_details
-            },
-        'authenticated': authenticated,
+        "statusCode": code,
+        "data": {"tokens": tokens, "userDetails": new_user_details},
+        "authenticated": authenticated,
     }

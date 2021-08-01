@@ -11,8 +11,9 @@ if path.exists(path.join(base_dir, ".env")):
 else:
     load_dotenv()
 
+
 # Dev configurations
-class DevConfig():
+class DevConfig:
     DEBUG = True
     TESTING = True
     # FLASK_RUN_PORT = 5000
@@ -22,8 +23,9 @@ class DevConfig():
     SECRET_KEY = getenv("SECRET_KEY")
     SESSION_COOKIE_NAME = getenv("SESSION_COOKIE_NAME")
 
+
 # Test configurations
-class TestConfig():
+class TestConfig:
     DEBUG = False
     TESTING = True
     FLASK_ENV = "test"
@@ -33,8 +35,9 @@ class TestConfig():
     SECRET_KEY = getenv("SECRET_KEY")
     SESSION_COOKIE_NAME = getenv("SESSION_COOKIE_NAME")
 
+
 # Prod configurations
-class ProdConfig():
+class ProdConfig:
     DEBUG = False
     TESTING = False
     REGION = getenv("REGION")

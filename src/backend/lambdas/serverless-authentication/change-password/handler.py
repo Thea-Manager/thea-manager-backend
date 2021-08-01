@@ -15,91 +15,90 @@ from ..utils import exception_handler
 # Declare boto3 cognito client
 cognito = client("cognito-idp")
 
+
 # Change password
 @exception_handler
 def change_passsword(old_pass: str, new_pass: str, access_token: str):
     """
-        API route to change cognito user's password.
+    API route to change cognito user's password.
 
-        Parameters
-        ----------
+    Parameters
+    ----------
 
-            - old_pass: str [required]
-                original password
+        - old_pass: str [required]
+            original password
 
-            - new_pass: str [required]
-                new password
+        - new_pass: str [required]
+            new password
 
-            - access_token: str [required]
-                access token JWT
+        - access_token: str [required]
+            access token JWT
 
-        Returns
-        -------
+    Returns
+    -------
 
-            response: str
-                success message
+        response: str
+            success message
 
-            status_code: int
-                https response code
+        status_code: int
+            https response code
 
-        Raises
-        ------
+    Raises
+    ------
 
-            - InternalErrorException
-                Internal error
-            
-            - InvalidParameterException
-                Invalid api parameters
+        - InternalErrorException
+            Internal error
 
-            - InvalidPasswordException
-                Password did not conform with password policy
+        - InvalidParameterException
+            Invalid api parameters
 
-            - LimitExceededException
-                Change password requests limit exceeded
+        - InvalidPasswordException
+            Password did not conform with password policy
 
-            - TooManyRequestsException
-                API requests limit exceeded
+        - LimitExceededException
+            Change password requests limit exceeded
 
-            - NotAuthorizedException
-                Not authorized to perform action
+        - TooManyRequestsException
+            API requests limit exceeded
 
-            - PasswordResetRequiredException
-                Password reset is required
+        - NotAuthorizedException
+            Not authorized to perform action
 
-            - ResourceNotFoundException
-                User pool or cognito app client doesn't exist
+        - PasswordResetRequiredException
+            Password reset is required
 
-            - UserNotConfirmedException
-                Cognito user not confirmed
+        - ResourceNotFoundException
+            User pool or cognito app client doesn't exist
 
-            - UserNotFoundException
-                Cognito user does not exist
+        - UserNotConfirmedException
+            Cognito user not confirmed
+
+        - UserNotFoundException
+            Cognito user does not exist
     """
     cognito.change_password(
-        PreviousPassword = old_pass,
-        ProposedPassword = new_pass,
-        AccessToken = access_token)
-    
+        PreviousPassword=old_pass, ProposedPassword=new_pass, AccessToken=access_token
+    )
+
     return "Password changed", 200
+
 
 # ---------------------------------------------------------------
 #                           Utils
 # ---------------------------------------------------------------
 
+
 def handler(event, context):
-    
+
     # Request body
     kwargs = {
         "old_pass": event["oldPassword"],
         "new_pass": event["newPassword"],
         "access_token": event["accessToken"],
     }
-    
+
     # Change password
     response, code = change_passsword(**kwargs)
-    
+
     # TODO implement
-    return {
-        "data": response,
-        "statusCode": code
-    }
+    return {"data": response, "statusCode": code}

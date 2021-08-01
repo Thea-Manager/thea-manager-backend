@@ -16,101 +16,102 @@ from ..utils import exception_handler, compute_secret_hash
 # Declare boto3 cognito client
 cognito = client("cognito-idp")
 
+
 @exception_handler
 def resend_signup_confirmation_code(client_id: str, client_secret: str, username: str):
     """
-        Resends the user a confirmaion code to their email to verify ownership
+    Resends the user a confirmaion code to their email to verify ownership
 
-        Parameters:
-        -----------
+    Parameters:
+    -----------
 
-            - client_id: str [required]
-                description: The ID of the client associated with the user pool
+        - client_id: str [required]
+            description: The ID of the client associated with the user pool
 
-            - client_secret: str [required]
-                description: client secret provided by cognito
+        - client_secret: str [required]
+            description: client secret provided by cognito
 
-            - username: str [required]
-                description: The user name of the user you wish to register/authenticate
+        - username: str [required]
+            description: The user name of the user you wish to register/authenticate
 
-        Returns:
-        --------
+    Returns:
+    --------
 
-            - response: None | str
-                description: null if success, error messaage if fail
+        - response: None | str
+            description: null if success, error messaage if fail
 
-            - http_staus_code: int
-                descrption: HTTP server response
+        - http_staus_code: int
+            descrption: HTTP server response
 
-        Raises:
-        ------
+    Raises:
+    ------
 
-            - InternalErrorException
-                Internal error
-            
-            - InvalidParameterException
-                Invalid parameter for cognito
+        - InternalErrorException
+            Internal error
 
-            - TooManyRequestsException
-                API requests limit exceeded
+        - InvalidParameterException
+            Invalid parameter for cognito
 
-            - NotAuthorizedException
-                Not authorized to perform action
+        - TooManyRequestsException
+            API requests limit exceeded
 
-            - ResourceNotFoundException
-                User pool or cognito app client doesn't exist
+        - NotAuthorizedException
+            Not authorized to perform action
 
-            - UserNotFoundException
-                Cognito user does not exist
+        - ResourceNotFoundException
+            User pool or cognito app client doesn't exist
 
-            - UnexpectedLambdaException
-                Unexpected exception with AWS Lambda service
+        - UserNotFoundException
+            Cognito user does not exist
 
-            - UserLambdaValidationException
-                User validation exception
+        - UnexpectedLambdaException
+            Unexpected exception with AWS Lambda service
 
-            - InvalidLambdaResponseException
-                Invalid lambda response
+        - UserLambdaValidationException
+            User validation exception
 
-            - InvalidSmsRoleAccessPolicyException:
-                Role provided for SMS configuration does not have permission to publish using Amazon SNS
+        - InvalidLambdaResponseException
+            Invalid lambda response
 
-            - InvalidSmsRoleTrustRelationshipException
-                Invalid trust relationship with role provided with SMS configuration
+        - InvalidSmsRoleAccessPolicyException:
+            Role provided for SMS configuration does not have permission to publish using Amazon SNS
 
-            - LimitExceededException
-                Change password requests limit exceeded
+        - InvalidSmsRoleTrustRelationshipException
+            Invalid trust relationship with role provided with SMS configuration
 
-            - CodeDeliveryFailureException
-                Thrown when a verification code fails to deliver successfully 
+        - LimitExceededException
+            Change password requests limit exceeded
 
-            - InvalidEmailRoleAccessPolicyException
-                Cognito doesn't have permission to use email identity
+        - CodeDeliveryFailureException
+            Thrown when a verification code fails to deliver successfully
+
+        - InvalidEmailRoleAccessPolicyException
+            Cognito doesn't have permission to use email identity
     """
     response = cognito.resend_confirmation_code(
-        ClientId = client_id,
-        Username = username,
-        SecretHash = compute_secret_hash(client_id, client_secret, username))  
-    return None, response['ResponseMetadata']['HTTPStatusCode']     
-        
+        ClientId=client_id,
+        Username=username,
+        SecretHash=compute_secret_hash(client_id, client_secret, username),
+    )
+    return None, response["ResponseMetadata"]["HTTPStatusCode"]
+
+
 # ---------------------------------------------------------------
 #                           Main
 # ---------------------------------------------------------------
 
+
 def lambda_handler(event, context):
-    
+
     # Ingest requried params
     kwargs = {
         "username": event["username"],
         "client_id": event["clientId"],
-        "client_secret": event["clientSecret"]
+        "client_secret": event["clientSecret"],
     }
-    
+
     # Sign up
     response, code = resend_signup_confirmation_code(**kwargs)
-    
+
     # TODO implement
-    return {
-        'statusCode': code,
-        'body': response
-    }
+    return {"statusCode": code, "body": response}

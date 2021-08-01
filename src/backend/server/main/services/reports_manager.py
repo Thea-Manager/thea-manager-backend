@@ -4,10 +4,6 @@
 #                           Imports
 # ---------------------------------------------------------------
 
-# Logging Imports
-import logging
-logger = logging.getLogger(__name__)
-
 # Native Imports
 from datetime import date
 from typeguard import check_argument_types
@@ -20,37 +16,47 @@ from ..models.ses import SES
 from .workflows import Workflows
 from ..models.dynamodb import Dynamo
 
+# Logging Imports
+import logging
+
+# ---------------------------------------------------------------
+#                            Globals
+# ---------------------------------------------------------------
+
+logger = logging.getLogger(__name__)
+
 # ---------------------------------------------------------------
 #                         Configure Logging
 # ---------------------------------------------------------------
 
-class ReportsManager():
+
+class ReportsManager:
     """
-        Class to programatically manage project reports
+    Class to programatically manage project reports
 
-        Attributes
-        ----------
-            _db:
-                DynamoDB object instance
-            _email:
-                SES object client instance
+    Attributes
+    ----------
+        _db:
+            DynamoDB object instance
+        _email:
+            SES object client instance
 
-        Methods
-        -------
-            create_scope_report(token, project_id, customer_id, scope_id, name, due_date, requested_by, submitted_by, description)
-                Creates new unique scope report
+    Methods
+    -------
+        create_scope_report(token, project_id, customer_id, scope_id, name, due_date, requested_by, submitted_by, description)
+            Creates new unique scope report
 
-            get_report_information(customer_id, project_id, scope_id, report_id)
-                Retrieves unique report's information
+        get_report_information(customer_id, project_id, scope_id, report_id)
+            Retrieves unique report's information
 
-            get_reports_overview(customer_id, project_id, scope_id)
-                Retrieves reports overview for unique project
+        get_reports_overview(customer_id, project_id, scope_id)
+            Retrieves reports overview for unique project
 
-            update_existing_reports(token, customer_id, project_id, items)
-                Updates existing report
+        update_existing_reports(token, customer_id, project_id, items)
+            Updates existing report
 
-            delete_existing_reports(customer_id, project_id, reports)
-                Deletes existing report
+        delete_existing_reports(customer_id, project_id, reports)
+            Deletes existing report
     """
 
     def __init__(self):
@@ -59,48 +65,60 @@ class ReportsManager():
 
     # TODO: add document reference parameter and object attribute
     @exception_handler
-    def create_scope_report(self, token: str, object_id: str, project_id: str, customer_id: str, scope_id: str, name: str, due_date: str, requested_by: dict, submitted_by: dict, description: str):
+    def create_scope_report(
+        self,
+        token: str,
+        object_id: str,
+        project_id: str,
+        customer_id: str,
+        scope_id: str,
+        name: str,
+        due_date: str,
+        requested_by: dict,
+        submitted_by: dict,
+        description: str,
+    ):
         """
-            Creates new unique scope report
+        Creates new unique scope report
 
-            Parameters:
-            -----------
+        Parameters:
+        -----------
 
-                object_id: str [required]
-                    unique object ID
-                    
-                project_id: str [required]
-                    unique project ID
+            object_id: str [required]
+                unique object ID
 
-                customer_id: str [required]
-                    unique customer ID
+            project_id: str [required]
+                unique project ID
 
-                scope_id:  str [required]
-                    unique scope ID
+            customer_id: str [required]
+                unique customer ID
 
-                name: str [required]
-                    name of repporot
+            scope_id:  str [required]
+                unique scope ID
 
-                due_date: str [required]
-                    due date to submit report
+            name: str [required]
+                name of repporot
 
-                requested_by: dict [required]
-                    dict object containing requestor details
+            due_date: str [required]
+                due date to submit report
 
-                submitted_by: dict [required]
-                    dict object containing submittor's details             
+            requested_by: dict [required]
+                dict object containing requestor details
 
-                str [required]
-                    description or details of report
+            submitted_by: dict [required]
+                dict object containing submittor's details
 
-            Returns:
-            --------
+            str [required]
+                description or details of report
 
-                response: str | dict
-                    str if error responsee, list object containing project information
+        Returns:
+        --------
 
-                http_status_code: int
-                    http server status response code
+            response: str | dict
+                str if error responsee, list object containing project information
+
+            http_status_code: int
+                http server status response code
         """
 
         # Type guarding
@@ -126,49 +144,61 @@ class ReportsManager():
             "created": str(date.today()),
             "lastUpdate": str(date.today()),
             "scopeId": scope_id,
-            "reportId": object_id
+            "reportId": object_id,
         }
 
         # Add project member
         logger.info("Creating new project report")
-        update_expression = f"SET scopes.{scope_id}.reports.#reportId = :{dynamo_object['reportId']}"
-        expression_attribute_names = {f"#reportId": dynamo_object['reportId']}
+        update_expression = (
+            f"SET scopes.{scope_id}.reports.#reportId = :{dynamo_object['reportId']}"
+        )
+        expression_attribute_names = {"#reportId": dynamo_object["reportId"]}
         expression_attribute_values = {f":{dynamo_object['reportId']}": dynamo_object}
-        self._db.update_item(table_name, key, update_expression, expression_attribute_names, expression_attribute_values)
+        self._db.update_item(
+            table_name,
+            key,
+            update_expression,
+            expression_attribute_names,
+            expression_attribute_values,
+        )
 
         # Log workflow
         message = [f"Created new report: {name}"]
-        workflow = Workflows.update_workflows(token, "Create", message, project_id, dynamo_object["reportId"])
+        workflow = Workflows.update_workflows(
+            token, "Create", message, project_id, dynamo_object["reportId"]
+        )
         self._db.create_item(f"Workflows-{customer_id}", workflow)
-        
+
         logger.info("New project report created successfully")
         return "New project report created successfully", 200
 
     @exception_handler
-    def get_report_information(self, customer_id: str, project_id: str, scope_id: str, report_id: str):
+    def get_report_information(
+        self, customer_id: str, project_id: str, scope_id: str, report_id: str
+    ):
         """
-            Get unique report information
+        Get unique report information
 
-            Parameters:
-            -----------
+        Parameters:
+        -----------
 
-                customer_id: str [required]
-                    unique customer ID
+            customer_id: str [required]
+                unique customer ID
 
-                project_id: str [required]
-                    unique project ID
+            project_id: str [required]
+                unique project ID
 
-                report_id: str [required]
-                    unique report ID
+            report_id: str [required]
+                unique report ID
 
-            Returns:
-            --------
+        Returns:
+        --------
 
-                response: str | dict
-                    str if error responsee, list object containing project information
+            response: str | dict
+                str if error responsee, list object containing project information
 
-                http_status_code: int
-                    http server status response code
+            http_status_code: int
+                http server status response code
         """
 
         # Type guarding
@@ -184,7 +214,9 @@ class ReportsManager():
 
         # Query DynamoDB request
         logger.info(f"Checking if project ID or organization ID exists: {key}")
-        response, http_status_code =  self._db.read_single_item(table_name, key, projection_expression)
+        response, http_status_code = self._db.read_single_item(
+            table_name, key, projection_expression
+        )
 
         if response:
             reports = response["scopes"][scope_id]["reports"]
@@ -197,27 +229,29 @@ class ReportsManager():
             return [], 404
 
     @exception_handler
-    def get_reports_overview(self, customer_id: str, project_id: str, scope_id: str = ""):
+    def get_reports_overview(
+        self, customer_id: str, project_id: str, scope_id: str = ""
+    ):
         """
-            Gets overview of existing reports for unique project
+        Gets overview of existing reports for unique project
 
-            Parameters:
-            -----------
+        Parameters:
+        -----------
 
-                customer_id: str [required]
-                    unique customer ID
+            customer_id: str [required]
+                unique customer ID
 
-                project_id: str [required]
-                    descirption: unique project ID
+            project_id: str [required]
+                descirption: unique project ID
 
-            Returns:
-            --------
+        Returns:
+        --------
 
-                response: str | list
-                    str if error, else list object containing project information
+            response: str | list
+                str if error, else list object containing project information
 
-                http_status_code: int
-                    http server status response code
+            http_status_code: int
+                http server status response code
         """
 
         # Type guarding
@@ -237,10 +271,12 @@ class ReportsManager():
 
         # Get Data
         logger.info("Querying reports overview from DynamoDB")
-        response, http_status_code = self._db.read_single_item(table_name, key, projection_expression)
-    
-        if response:  
-            if scope_id:      
+        response, http_status_code = self._db.read_single_item(
+            table_name, key, projection_expression
+        )
+
+        if response:
+            if scope_id:
                 response = list(response["scopes"][scope_id]["reports"].values())
             else:
                 reports = []
@@ -254,35 +290,37 @@ class ReportsManager():
         return response, http_status_code
 
     @exception_handler
-    def update_existing_reports(self, token: str, customer_id: str, project_id: str, items: list):
+    def update_existing_reports(
+        self, token: str, customer_id: str, project_id: str, items: list
+    ):
         """
-            Updates reports on the scope manager tool of Thea and stores it on DynamoDB.
+        Updates reports on the scope manager tool of Thea and stores it on DynamoDB.
 
-            Parameters:
-            -----------
+        Parameters:
+        -----------
 
-                customer_id: str [required]
-                    unique customer ID
+            customer_id: str [required]
+                unique customer ID
 
-                project_id: str [required]
-                    descirption: unique project ID
+            project_id: str [required]
+                descirption: unique project ID
 
-                report_id: str [required]
-                    unique scope ID
+            report_id: str [required]
+                unique scope ID
 
-                items: list
-                    dict containing items to update on DynamoDB
+            items: list
+                dict containing items to update on DynamoDB
 
-            Returns:
-            --------
+        Returns:
+        --------
 
-                response: str
-                    server response data
+            response: str
+                server response data
 
-                http_staus_code: int
-                    descrption: HTTP server response
+            http_staus_code: int
+                descrption: HTTP server response
         """
-        
+
         # Type guarding
         assert check_argument_types()
 
@@ -294,17 +332,21 @@ class ReportsManager():
 
         # Check if customer and project exist
         logger.info(f"Checking if project ID or organization ID exists: {key}")
-        response, http_status_code =  self._db.read_single_item(table_name, key, "projectId")
+        response, http_status_code = self._db.read_single_item(
+            table_name, key, "projectId"
+        )
 
         success, fail = [], []
         for item in items:
-            
+
             scope_id = item["scopeId"]
             report_id = item["reportId"]
 
             # Query item from DynamoDB
             projection_expression = f"scopes.{scope_id}.reports.{report_id}"
-            previous_item, _ = self._db.read_single_item(table_name, key, projection_expression)
+            previous_item, _ = self._db.read_single_item(
+                table_name, key, projection_expression
+            )
             if not previous_item:
                 continue
             previous_item = previous_item["scopes"][scope_id]["reports"][report_id]
@@ -312,15 +354,28 @@ class ReportsManager():
             # DynamoDB expression & update reports
             logger.info("Updating report details")
             item["lastUpdated"] = str(date.today())
-            update_expression = "SET {}".format(", ".join(f"scopes.{scope_id}.reports.{report_id}.#{k}=:{k}" for k in item.keys()))
+            update_expression = "SET {}".format(
+                ", ".join(
+                    f"scopes.{scope_id}.reports.{report_id}.#{k}=:{k}"
+                    for k in item.keys()
+                )
+            )
             expression_attribute_names = {f"#{k}": k for k in item.keys()}
             expression_attribute_values = {f":{k}": v for k, v in item.items()}
-            response, http_status_code = self._db.update_item(table_name, key, update_expression, expression_attribute_names, expression_attribute_values)
+            response, http_status_code = self._db.update_item(
+                table_name,
+                key,
+                update_expression,
+                expression_attribute_names,
+                expression_attribute_values,
+            )
 
             # Log workflow
             message = generate_differences_message(previous_item, item)
             if message:
-                workflow = Workflows.update_workflows(token, "Update", message, project_id, report_id)
+                workflow = Workflows.update_workflows(
+                    token, "Update", message, project_id, report_id
+                )
                 self._db.create_item(f"Workflows-{customer_id}", workflow)
 
             if 200 <= http_status_code < 300:
@@ -330,15 +385,14 @@ class ReportsManager():
                 logger.error(f"{response}, {http_status_code}")
                 fail.append(report_id)
 
-
         # Default vavlue
         http_status_code = 200
 
-        if len(success)>=1 and len(fail)==0:
+        if len(success) >= 1 and len(fail) == 0:
             http_status_code = 200
-        elif len(success)==0 and len(fail)>=1:
+        elif len(success) == 0 and len(fail) >= 1:
             http_status_code = 403
-        elif len(success)>=1 and len(fail)>=1:
+        elif len(success) >= 1 and len(fail) >= 1:
             http_status_code = 405
         else:
             http_status_code = 304
@@ -348,28 +402,28 @@ class ReportsManager():
     @exception_handler
     def delete_existing_reports(self, customer_id: str, project_id: str, reports: list):
         """
-            Delete unique existing report for unique customer from the database
+        Delete unique existing report for unique customer from the database
 
-            Parameters:
-            -----------
+        Parameters:
+        -----------
 
-                customer_id: str [required]
-                    unique customer ID
+            customer_id: str [required]
+                unique customer ID
 
-                project_id: str [required]
-                    unique project ID
+            project_id: str [required]
+                unique project ID
 
-                reports: list [required]
-                    list of report IDs to delete on DynamoDB
+            reports: list [required]
+                list of report IDs to delete on DynamoDB
 
-            Returns:
-            --------
+        Returns:
+        --------
 
-                response: str
-                    server response data
+            response: str
+                server response data
 
-                http_staus_code: int
-                    descrption: HTTP server response
+            http_staus_code: int
+                descrption: HTTP server response
         """
 
         # Type guarding
@@ -387,8 +441,15 @@ class ReportsManager():
 
         # DynamoDB expression
         logger.info(f"Deleting project reports {reports}")
-        update_expression = "REMOVE {}".format(", ".join([f"reports.{k}" for k in reports]))
-        self._db.update_item(table_name = table_name, key = key, update_expression = update_expression, return_values = "UPDATED_NEW")
-        
-        logger.info(f"Project report deleted successfully")
+        update_expression = "REMOVE {}".format(
+            ", ".join([f"reports.{k}" for k in reports])
+        )
+        self._db.update_item(
+            table_name=table_name,
+            key=key,
+            update_expression=update_expression,
+            return_values="UPDATED_NEW",
+        )
+
+        logger.info("Project report deleted successfully")
         return "Project report deleted successfully", 200

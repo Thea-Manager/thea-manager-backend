@@ -4,10 +4,6 @@
 #                           Imports
 # ---------------------------------------------------------------
 
-# Logging Imports
-import logging
-logger = logging.getLogger(__name__)
-
 # General Imports
 from re import sub
 
@@ -16,10 +12,7 @@ from os.path import splitext
 from typeguard import check_argument_types
 
 # Utils imports
-from .utils import (
-    convert_size,
-    exception_handler,
-    generate_differences_message)
+from .utils import convert_size, exception_handler, generate_differences_message
 from .utils import accepted_file_extensions
 
 # Local package imports
@@ -30,39 +23,49 @@ from ..models.dynamodb import Dynamo
 # werkzeug imports
 from werkzeug.utils import secure_filename
 
+# Logging Imports
+import logging
+
+# ---------------------------------------------------------------
+#                             Globals
+# ---------------------------------------------------------------
+
+logger = logging.getLogger(__name__)
+
 # ---------------------------------------------------------------
 #                         Document Manager
 # ---------------------------------------------------------------
 
-class DocumentManager():
+
+class DocumentManager:
     """
-        Class to programatically interact with AWS S3 via the S3 sub-class
-        implementation
+    Class to programatically interact with AWS S3 via the S3 sub-class
+    implementation
 
-        Attributes
-        ----------
-            _s3
-                S3 class object instance to interact with boto3 APIs
+    Attributes
+    ----------
+        _s3
+            S3 class object instance to interact with boto3 APIs
 
-            -db
-                dynamodb class object instance to interact with boto3 APIs
+        -db
+            dynamodb class object instance to interact with boto3 APIs
 
-        Methods
-        -------
-            document_request(customer_id, project_id, scope_id, requested_by, requested_of, doc_attributes)
-                Creates a document request
+    Methods
+    -------
+        document_request(customer_id, project_id, scope_id, requested_by, requested_of, doc_attributes)
+            Creates a document request
 
-            presigned_url_get(customer_id, project_id, scope_id, filename, version_id)
-                Generates presigned URL to download object from S3
+        presigned_url_get(customer_id, project_id, scope_id, filename, version_id)
+            Generates presigned URL to download object from S3
 
-            presigned_url_post(customer_id, project_id, scope_id, filename, document_id)
-                Generates presigned URL to uploadd object to S3
+        presigned_url_post(customer_id, project_id, scope_id, filename, document_id)
+            Generates presigned URL to uploadd object to S3
 
-            update_document_details(token, customer_id, project_id, items)
-                Updates document details on DynamoDB
+        update_document_details(token, customer_id, project_id, items)
+            Updates document details on DynamoDB
 
-            get_data_room_contents(customer_id, project_id, scope_id, filename)
-                Retrieves contents of a directory including list of all files or a file's versions
+        get_data_room_contents(customer_id, project_id, scope_id, filename)
+            Retrieves contents of a directory including list of all files or a file's versions
     """
 
     def __init__(self) -> None:
@@ -70,41 +73,52 @@ class DocumentManager():
         self._db = Dynamo()
 
     @exception_handler
-    def document_request(self, token: str, object_id: str, customer_id: str, project_id: str, requested_by: dict, requested_of: dict, name: str, due_date: str, description: str):
+    def document_request(
+        self,
+        token: str,
+        object_id: str,
+        customer_id: str,
+        project_id: str,
+        requested_by: dict,
+        requested_of: dict,
+        name: str,
+        due_date: str,
+        description: str,
+    ):
         """
-            Creates a new document reference and request, then appends that it to target
-            scope on DynamoDB
+        Creates a new document reference and request, then appends that it to target
+        scope on DynamoDB
 
-            Parameters:
-            -----------
-                object_id: str [required]
-                    unique object ID
+        Parameters:
+        -----------
+            object_id: str [required]
+                unique object ID
 
-                customer_id: str [required]
-                    unique customer ID
+            customer_id: str [required]
+                unique customer ID
 
-                project_id: str [required]
-                     unique project ID
+            project_id: str [required]
+                 unique project ID
 
-                scope_id: str [required]
-                     unique project ID
+            scope_id: str [required]
+                 unique project ID
 
-                requested_by: dict [required]
-                    dict containing details regarding user requesting document
+            requested_by: dict [required]
+                dict containing details regarding user requesting document
 
-                requested_of: dict [required]
-                    dict containing details regarding document requestee user
+            requested_of: dict [required]
+                dict containing details regarding document requestee user
 
-                doc_attributes: dict [required]
-                    document attributes
+            doc_attributes: dict [required]
+                document attributes
 
-            Returns:
-            --------
-                response: str
-                    success or error message of doc creation request
+        Returns:
+        --------
+            response: str
+                success or error message of doc creation request
 
-                http_status_code: int
-                    http server status response code
+            http_status_code: int
+                http server status response code
         """
 
         # Type guarding
@@ -122,53 +136,63 @@ class DocumentManager():
             "requestedOf": requested_of,
             "requestedBy": requested_by,
             "docReqId": object_id,
-            "name":  name,
+            "name": name,
             "dueDate": due_date,
-            "description": description
+            "description": description,
         }
 
         # DynamoDB expressions
         update_expression = f"SET dataroom.#docReqId = :{dynamo_object['docReqId']}"
-        expression_attribute_names = {"#docReqId": dynamo_object['docReqId']}
+        expression_attribute_names = {"#docReqId": dynamo_object["docReqId"]}
         expression_attribute_values = {f":{dynamo_object['docReqId']}": dynamo_object}
 
         # Create new milestone
         logger.info("Creating new document request")
-        self._db.update_item(table_name, key, update_expression, expression_attribute_names, expression_attribute_values)
+        self._db.update_item(
+            table_name,
+            key,
+            update_expression,
+            expression_attribute_names,
+            expression_attribute_values,
+        )
 
         # Log workflow
         message = [f"Created document request {dynamo_object['docReqId']}"]
-        workflow = Workflows.update_workflows(token, "Create", message, project_id, dynamo_object['docReqId'])
+        workflow = Workflows.update_workflows(
+            token, "Create", message, project_id, dynamo_object["docReqId"]
+        )
         self._db.create_item(f"Workflows-{customer_id}", workflow)
 
         logger.info("New document request created successfully")
         return "New document request created successfully", 200
 
     @exception_handler
-    def document_request_overview(self, customer_id: str, project_id: str, doc_req_id: str = ""):
+    def document_request_overview(
+        self, customer_id: str, project_id: str, doc_req_id: str = ""
+    ):
         """
-            Gets list of existing document requests
+        Gets list of existing document requests
 
-            Parameters
-            ----------
+        Parameters
+        ----------
 
-                customer_id: str [required]
-                    unique customer ID
+            customer_id: str [required]
+                unique customer ID
 
-                project_id: str [required]
-                    unique project ID
+            project_id: str [required]
+                unique project ID
 
-                doc_req_id: str [optional]
-                    unique document request Id
+            doc_req_id: str [optional]
+                unique document request Id
 
-            Returns
-            -------
+        Returns
+        -------
 
-                response: list
-                    list of document request objects
+            response: list
+                list of document request objects
 
-                http_status_code: int
-                    http server status response code
+            http_status_code: int
+                http server status response code
         """
         # Type guarding
         assert check_argument_types()
@@ -187,10 +211,12 @@ class DocumentManager():
 
         # Get Data
         logger.info(f"Checking if project ID or organization ID exists: {key}")
-        response, http_status_code = self._db.read_single_item(table_name, key, projection_expression)
+        response, http_status_code = self._db.read_single_item(
+            table_name, key, projection_expression
+        )
 
         if response:
-            if doc_req_id:      
+            if doc_req_id:
                 return response["dataroom"][doc_req_id], http_status_code
             else:
                 return list(response["dataroom"].values()), http_status_code
@@ -198,35 +224,42 @@ class DocumentManager():
             return [], 200
 
     @exception_handler
-    def presigned_url_get(self, customer_id: str, project_id: str, item_id: str, filename: str, version_id: str = ""):
+    def presigned_url_get(
+        self,
+        customer_id: str,
+        project_id: str,
+        item_id: str,
+        filename: str,
+        version_id: str = "",
+    ):
         """
-            Generates secure and expiring presigned URL to get document to S3 bucket
+        Generates secure and expiring presigned URL to get document to S3 bucket
 
-            Parameters:
-            -----------
+        Parameters:
+        -----------
 
-                customer_id: str [required]
-                    unique customer ID
+            customer_id: str [required]
+                unique customer ID
 
-                project_id: str [required]
-                     unique project ID
+            project_id: str [required]
+                 unique project ID
 
-                scope_id: str [required]
-                     unique project ID
+            scope_id: str [required]
+                 unique project ID
 
-                filename: str [required]
-                     secure filename
+            filename: str [required]
+                 secure filename
 
-                version_id: str [optional]
-                    version ID of object. Defaults to latest version if null
+            version_id: str [optional]
+                version ID of object. Defaults to latest version if null
 
-            Returns:
-            --------
-                response: str | None
-                    presigned URL | error message
+        Returns:
+        --------
+            response: str | None
+                presigned URL | error message
 
-                http_status_code: int
-                    http server status response code
+            http_status_code: int
+                http server status response code
         """
 
         # Type guarding
@@ -244,54 +277,62 @@ class DocumentManager():
 
         # Generate presigned url
         url = self._s3.create_presigned_url(
-            version_id = version_id,
-            object_name = "/".join([project_id, item_id, filename]),
-            bucket_name = customer_id
+            version_id=version_id,
+            object_name="/".join([project_id, item_id, filename]),
+            bucket_name=customer_id,
         )[0]
-                
+
         return url, 200
 
     @exception_handler
-    def presigned_url_post(self, token: str, customer_id: str, project_id: str, filenames: list, item_id: str, metadata: dict = None):
+    def presigned_url_post(
+        self,
+        token: str,
+        customer_id: str,
+        project_id: str,
+        filenames: list,
+        item_id: str,
+        metadata: dict = None,
+    ):
         """
-            Generates secure and expiring presigned URL to push document to S3 bucket
+        Generates secure and expiring presigned URL to push document to S3 bucket
 
-            Parameters:
-            -----------
+        Parameters:
+        -----------
 
-                customer_id: str [required]
-                    unique customer ID
+            customer_id: str [required]
+                unique customer ID
 
-                project_id: str [required]
-                    unique project ID
+            project_id: str [required]
+                unique project ID
 
-                scope_id: str [required]
-                    unique project ID
+            scope_id: str [required]
+                unique project ID
 
-                filename: str [required]
-                    secure filename
+            filename: str [required]
+                secure filename
 
-                version_id: str [optional]
-                    version ID of object. Defaults to latest version if null
+            version_id: str [optional]
+                version ID of object. Defaults to latest version if null
 
-            Returns:
-            --------
-                response: str | None
-                    presigned URL | error message
+        Returns:
+        --------
+            response: str | None
+                presigned URL | error message
 
-                http_status_code: int
-                    http server status response code
+            http_status_code: int
+                http server status response code
         """
 
         # Type guarding
         assert check_argument_types()
 
-        metadata = [metadata]*len(filenames)
-       
+        metadata = [metadata] * len(filenames)
+
         # Generate presigned url
         presigned_urls = []
         for i, name in enumerate(filenames):
-            
+
             # Get file name and extension
             name, extension = splitext(name)
 
@@ -303,60 +344,66 @@ class DocumentManager():
 
                 accepted_file_format = True
 
-                secured_name = secure_filename(name)+extension
+                secured_name = secure_filename(name) + extension
 
                 kwargs = {
-                    "bucket_name": customer_id, 
-                    "object_name": "/".join([project_id, item_id, secured_name]), 
+                    "bucket_name": customer_id,
+                    "object_name": "/".join([project_id, item_id, secured_name]),
                     "upload": True,
-                    "metadata": metadata[i]
+                    "metadata": metadata[i],
                 }
 
                 url = self._s3.create_presigned_url(**kwargs)
-            
-            presigned_urls.append({
-                "presignedUrl": url,
-                "orignalName": name,
-                "securedName": secured_name,
-                "acceptedFileFormat": accepted_file_format
-            })
+
+            presigned_urls.append(
+                {
+                    "presignedUrl": url,
+                    "orignalName": name,
+                    "securedName": secured_name,
+                    "acceptedFileFormat": accepted_file_format,
+                }
+            )
 
             # Log workflow
             message = [f"Uploaded document {name} to {customer_id}"]
-            workflow = Workflows.update_workflows(token, "Add", message, project_id, secured_name)
+            workflow = Workflows.update_workflows(
+                token, "Add", message, project_id, secured_name
+            )
             self._db.create_item(f"Workflows-{customer_id}", workflow)
 
         return presigned_urls, 200
 
     @exception_handler
-    def update_request_document_details(self, token: str, customer_id: str, project_id: str, items :list):
+    def update_request_document_details(
+        self, token: str, customer_id: str, project_id: str, items: list
+    ):
         """
-            Updates existing document details on DynamoDB
+        Updates existing document details on DynamoDB
 
-            Parameters:
-            -----------
+        Parameters:
+        -----------
 
-                customer_id: str [required]
-                    unique customer ID
+            customer_id: str [required]
+                unique customer ID
 
-                project_id: str [required]
-                     unique project ID
+            project_id: str [required]
+                 unique project ID
 
-                items: list [required]
-                    list containing items to update on DynamoDB
+            items: list [required]
+                list containing items to update on DynamoDB
 
-            Returns:
-            --------
-                response: str
-                    dict object containing project information
+        Returns:
+        --------
+            response: str
+                dict object containing project information
 
-                http_status_code: int
-                    http server status response code
+            http_status_code: int
+                http server status response code
         """
 
         # Type guarding
         assert check_argument_types()
-        
+
         # TODO: Make table name an config env variable
         table_name = f"Projects-{customer_id}"
 
@@ -369,7 +416,9 @@ class DocumentManager():
             doc_request_id = item["docReqId"]
 
             # Query item from DynamoDB
-            previous_item = self._db.read_single_item(table_name, key, f"dataroom.{doc_request_id}")[0]
+            previous_item = self._db.read_single_item(
+                table_name, key, f"dataroom.{doc_request_id}"
+            )[0]
             if not previous_item:
                 continue
             previous_item = previous_item["dataroom"][doc_request_id]
@@ -377,46 +426,58 @@ class DocumentManager():
             # Define DynamoDB expressions & update doc details
             logger.info(f"Updating document request {doc_request_id}")
             item["lastUpdate"] = str(date.today())
-            update_expression = "SET {}".format(", ".join(f"dataroom.{doc_request_id}.#{k}=:{k}" for k in item.keys()))
+            update_expression = "SET {}".format(
+                ", ".join(f"dataroom.{doc_request_id}.#{k}=:{k}" for k in item.keys())
+            )
             expression_attribute_names = {f"#{k}": k for k in item.keys()}
             expression_attribute_values = {f":{k}": v for k, v in item.items()}
-            self._db.update_item(table_name, key, update_expression, expression_attribute_names, expression_attribute_values)
+            self._db.update_item(
+                table_name,
+                key,
+                update_expression,
+                expression_attribute_names,
+                expression_attribute_values,
+            )
 
         # Log workflow
         message = generate_differences_message(previous_item, item)
         if message:
-            workflow = Workflows.update_workflows(token, "Update", message, project_id, doc_request_id)
+            workflow = Workflows.update_workflows(
+                token, "Update", message, project_id, doc_request_id
+            )
             self._db.create_item(f"Workflows-{customer_id}", workflow)
 
         return f"Updated {doc_request_id} successfully", 200
 
     @exception_handler
-    def get_data_room_contents(self, customer_id: str, project_id: str, item_id: str = ""):
+    def get_data_room_contents(
+        self, customer_id: str, project_id: str, item_id: str = ""
+    ):
         """
-            Get's dictionary of a bucket's contents
+        Get's dictionary of a bucket's contents
 
-            Parameters:
-            -----------
+        Parameters:
+        -----------
 
-                customer_id: str [required]
-                    unique customer ID
+            customer_id: str [required]
+                unique customer ID
 
-                project_id: str [optional]
-                     unique project ID
+            project_id: str [optional]
+                 unique project ID
 
-                scope_id: str [optional]
-                     unique project ID
+            scope_id: str [optional]
+                 unique project ID
 
-                filename: str [optional]
-                    document's filename
+            filename: str [optional]
+                document's filename
 
-            Returns:
-            --------
-                response: dict | str
-                    list of versions or error message of doc creation request
+        Returns:
+        --------
+            response: dict | str
+                list of versions or error message of doc creation request
 
-                http_status_code: int
-                    http server status response code
+            http_status_code: int
+                http server status response code
         """
 
         # Type guarding
@@ -435,11 +496,14 @@ class DocumentManager():
             versions = self._s3.list_file_versions(customer_id, response[i]["Key"])[0]
             response[i]["Versions"] = []
             for j, version in enumerate(versions):
-                response[i]["Versions"].append({
-                    "IsLatest": version["IsLatest"],
-                    "Size": convert_size(version["Size"]),
-                    "VersionNumber": f"V{len(versions) - j}",
-                    "VersionId": version["VersionId"]})
+                response[i]["Versions"].append(
+                    {
+                        "IsLatest": version["IsLatest"],
+                        "Size": convert_size(version["Size"]),
+                        "VersionNumber": f"V{len(versions) - j}",
+                        "VersionId": version["VersionId"],
+                    }
+                )
 
             # Get object meta data
             metadata = self._s3.get_object_metadata(customer_id, response[i]["Key"])[0]
