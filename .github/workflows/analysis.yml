@@ -1,14 +1,11 @@
 name: Analysis
 
-env:
-  BACKEND_SOURCE_PATH: "./src/backend"
-  DOCKER_IMAGE: "thea-manager"
 on:
   push:
     branches:
       - "**"
     paths:
-      - ${{ env.BACKEND_SOURCE_PATH }}
+      - "./src/backend"
   schedule:
     - cron: "0 0 * * 2"
   workflow_dispatch:
@@ -60,6 +57,9 @@ jobs:
   docker-analysis-backend:
     name: Docker Scan
     runs-on: ubuntu-latest
+    env:
+      BACKEND_SOURCE_PATH: "./src/backend"
+      DOCKER_IMAGE: "thea-manager"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
