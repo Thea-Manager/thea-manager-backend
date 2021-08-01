@@ -19,6 +19,7 @@ CUSTOMER_ID = getenv("CUSTOMER_ID")
 # Create dynamodb instance
 db = resource("dynamodb")
 
+
 # Write to dynamodb
 def write(item: dict):
 

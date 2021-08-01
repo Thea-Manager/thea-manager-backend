@@ -4,9 +4,6 @@
 #                           Imports
 # ---------------------------------------------------------------
 
-# Logging Imports
-import logging
-
 # Native Imports
 from collections import Counter
 from datetime import date, datetime
@@ -15,6 +12,9 @@ from typeguard import check_argument_types
 # Local package imports
 from ..models.dynamodb import Dynamo
 from .utils import clean_nested_dict, exception_handler, get_token_claims
+
+# Logging Imports
+import logging
 
 # ---------------------------------------------------------------
 #                           Globals
@@ -460,7 +460,6 @@ class Analytics:
         new_response["documents"]["user"] = {}
 
         new_response["documents"]["user"]["status"] = {}
-        # new_response["documents"]["user"]["status"]["pending"] = len(list(filter(lambda x: "pending" in x, my_documents_status)))
         new_response["documents"]["user"]["status"]["rejected"] = len(
             list(filter(lambda x: "rejected" in x, my_documents_status))
         )
@@ -494,7 +493,6 @@ class Analytics:
 
         new_response["documents"]["general"] = {}
         new_response["documents"]["general"]["status"] = {}
-        # new_response["documents"]["general"]["status"]["pending"] = len(list(filter(lambda x: "pending" in x, documents_status)))
         new_response["documents"]["general"]["status"]["rejected"] = len(
             list(filter(lambda x: "rejected" in x, documents_status))
         )

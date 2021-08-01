@@ -4,11 +4,6 @@
 #                           Imports
 # ---------------------------------------------------------------
 
-# Logging Imports
-import logging
-
-logger = logging.getLogger(__name__)
-
 # General Imports
 from re import sub
 
@@ -27,6 +22,15 @@ from ..models.dynamodb import Dynamo
 
 # werkzeug imports
 from werkzeug.utils import secure_filename
+
+# Logging Imports
+import logging
+
+# ---------------------------------------------------------------
+#                             Globals
+# ---------------------------------------------------------------
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------
 #                         Document Manager

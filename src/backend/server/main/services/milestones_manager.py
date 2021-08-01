@@ -4,13 +4,7 @@
 #                              Imports
 # ---------------------------------------------------------------
 
-# Logging Imports
-import logging
-
-logger = logging.getLogger(__name__)
-
 # General imports
-
 from datetime import datetime, date
 from typeguard import check_argument_types
 
@@ -20,6 +14,15 @@ from .utils import exception_handler, generate_differences_message
 # Local package imports
 from .workflows import Workflows
 from ..models.dynamodb import Dynamo
+
+# Logging Imports
+import logging
+
+# ---------------------------------------------------------------
+#                           Globals
+# ---------------------------------------------------------------
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------
 #                        Milestones Manager
@@ -37,7 +40,8 @@ class MilestonesManager:
 
     Methods
     -------
-    create_new_milestone(token, customer_id, project_id, scope_id, milestone_name, start_date, end_date, phase, assignee, notes, business_unit, currency, invoiceable, cost)
+    create_new_milestone(token, customer_id, project_id, scope_id, milestone_name, start_date, \
+        end_date, phase, assignee, notes, business_unit, currency, invoiceable, cost)
         Creates new milestone in a unique project scope
 
     get_milestone_details(customer_id, project_id, scope_id, milestone_id)
@@ -192,7 +196,7 @@ class MilestonesManager:
         )
         self._db.create_item(f"Workflows-{customer_id}", workflow)
 
-        logger.info(f"New milestone created successfully")
+        logger.info("New milestone created successfully")
         return "New milestone created successfully", 200
 
     @exception_handler
@@ -243,7 +247,7 @@ class MilestonesManager:
         if response:
             milestones = response["scopes"][scope_id]["milestones"]
             if not milestones:
-                logger.error(f"Milestone ID not found, 404")
+                logger.error("Milestone ID not found, 404")
                 return "Milestone ID not found", 404
             else:
                 milestone = milestones[milestone_id]

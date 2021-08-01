@@ -18,6 +18,7 @@ from ..utils import exception_handler
 # Declare boto3 cognito client
 cognito = client("cognito-idp")
 
+
 # Get user details
 @exception_handler
 def get_user_details_cognito(access_token: str):
@@ -78,6 +79,7 @@ def get_user_details_cognito(access_token: str):
 
 # Declare dynamodb client
 dynamodb = resource("dynamodb")
+
 
 # Retrieve
 def read_single_item(

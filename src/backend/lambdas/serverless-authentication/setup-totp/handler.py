@@ -6,7 +6,7 @@
 from boto3 import client
 
 # Utils Imports
-from ..utils import exception_handler, compute_secret_hash
+from ..utils import exception_handler
 
 # ---------------------------------------------------------------
 #                           Utils
@@ -14,6 +14,7 @@ from ..utils import exception_handler, compute_secret_hash
 
 # Declare boto3 cognito client
 cognito = client("cognito-idp")
+
 
 # Intiate signin
 @exception_handler

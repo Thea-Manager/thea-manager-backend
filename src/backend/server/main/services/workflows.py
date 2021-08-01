@@ -10,16 +10,20 @@ from time import time
 from uuid import uuid4
 from typeguard import check_argument_types
 
-# Logging Imports
-import logging
-
-logger = logging.getLogger(__name__)
-
 # Utils Imports
 from .utils import get_token_claims
 
 # Local package imports
 from ..models.dynamodb import Dynamo
+
+# Logging Imports
+import logging
+
+# ---------------------------------------------------------------
+#                               Globals
+# ---------------------------------------------------------------
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------
 #                          Workflows Manager

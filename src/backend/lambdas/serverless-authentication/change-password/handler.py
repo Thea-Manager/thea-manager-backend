@@ -15,6 +15,7 @@ from ..utils import exception_handler
 # Declare boto3 cognito client
 cognito = client("cognito-idp")
 
+
 # Change password
 @exception_handler
 def change_passsword(old_pass: str, new_pass: str, access_token: str):

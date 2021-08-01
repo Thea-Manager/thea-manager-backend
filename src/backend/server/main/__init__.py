@@ -12,6 +12,7 @@ from flask_cors import CORS
 #                        Create app instance
 # ---------------------------------------------------------------
 
+
 # Create application
 def create_app():
     """

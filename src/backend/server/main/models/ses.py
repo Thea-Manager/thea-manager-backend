@@ -4,11 +4,6 @@
 #                           Imports
 # ---------------------------------------------------------------
 
-# Logging Imports
-import logging
-
-logger = logging.getLogger(__name__)
-
 # Native & External imports
 from os import getenv
 from typeguard import check_argument_types
@@ -18,6 +13,15 @@ from boto3 import client
 
 # Utils imports
 from .utils import exception_handler
+
+# Logging Imports
+import logging
+
+# ---------------------------------------------------------------
+#                           Globals
+# ---------------------------------------------------------------
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------
 #                           AWS SES
@@ -74,7 +78,7 @@ class SES:
         assert check_argument_types()
 
         # try:
-        logger.info(f"Sending templated email")
+        logger.info("Sending templated email")
         response = self._ses.send_templated_email(
             Source=source,
             Destination={"BccAddresses": bcc_addresses},
@@ -120,8 +124,8 @@ class SES:
         assert check_argument_types()
 
         # TODO: figure out a way to check if emails is verified without
-        logger.info("Getting list of verified emaills")
-        verified_emails = self._ses.list_identities(IdentityType="EmailAddress")
+        # logger.info("Getting list of verified emaills")
+        # verified_emails = self._ses.list_identities(IdentityType="EmailAddress")
 
         # logger.info("Retrieved verified emaills")
         # verified_emails = verified_emails["Identities"]

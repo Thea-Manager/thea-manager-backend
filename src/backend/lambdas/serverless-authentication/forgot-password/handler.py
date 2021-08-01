@@ -15,6 +15,7 @@ from ..utils import exception_handler, compute_secret_hash
 # Declare boto3 cognito client
 cognito = client("cognito-idp")
 
+
 # Intiate password reset
 @exception_handler
 def forgot_password(client_id: str, client_secret: str, username: str):

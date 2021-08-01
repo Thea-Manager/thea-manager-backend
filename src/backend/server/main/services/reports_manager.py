@@ -4,11 +4,6 @@
 #                           Imports
 # ---------------------------------------------------------------
 
-# Logging Imports
-import logging
-
-logger = logging.getLogger(__name__)
-
 # Native Imports
 from datetime import date
 from typeguard import check_argument_types
@@ -20,6 +15,15 @@ from .utils import exception_handler, generate_differences_message
 from ..models.ses import SES
 from .workflows import Workflows
 from ..models.dynamodb import Dynamo
+
+# Logging Imports
+import logging
+
+# ---------------------------------------------------------------
+#                            Globals
+# ---------------------------------------------------------------
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------
 #                         Configure Logging
@@ -148,7 +152,7 @@ class ReportsManager:
         update_expression = (
             f"SET scopes.{scope_id}.reports.#reportId = :{dynamo_object['reportId']}"
         )
-        expression_attribute_names = {f"#reportId": dynamo_object["reportId"]}
+        expression_attribute_names = {"#reportId": dynamo_object["reportId"]}
         expression_attribute_values = {f":{dynamo_object['reportId']}": dynamo_object}
         self._db.update_item(
             table_name,
@@ -447,5 +451,5 @@ class ReportsManager:
             return_values="UPDATED_NEW",
         )
 
-        logger.info(f"Project report deleted successfully")
+        logger.info("Project report deleted successfully")
         return "Project report deleted successfully", 200

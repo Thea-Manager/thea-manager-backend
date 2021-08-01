@@ -5,13 +5,7 @@
 # General Imports
 from time import time
 from datetime import date
-
 from typeguard import check_argument_types
-
-# Logging Imports
-import logging
-
-logger = logging.getLogger(__name__)
 
 # Local package imports
 from .workflows import Workflows
@@ -19,6 +13,15 @@ from ..models.dynamodb import Dynamo
 
 # Utils import
 from .utils import exception_handler, generate_differences_message
+
+# Logging Imports
+import logging
+
+# ---------------------------------------------------------------
+#                               Globals
+# ---------------------------------------------------------------
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------
 #                           Discussions Manager
@@ -116,7 +119,7 @@ class DiscussionsManager:
         )
         self._db.create_item(f"Workflows-{customer_id}", workflow)
 
-        logger.info(f"New milestone created successfully")
+        logger.info("New milestone created successfully")
         return "New discussion created successfully", 200
 
     @exception_handler

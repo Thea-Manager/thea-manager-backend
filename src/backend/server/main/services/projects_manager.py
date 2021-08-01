@@ -4,11 +4,6 @@
 #                           Imports
 # ---------------------------------------------------------------
 
-# Logging Imports
-import logging
-
-logger = logging.getLogger(__name__)
-
 # General Imports
 import json
 from os import getenv
@@ -23,6 +18,15 @@ from .utils import exception_handler, generate_differences_message
 from ..models.ses import SES
 from .workflows import Workflows
 from ..models.dynamodb import Dynamo
+
+# Logging Imports
+import logging
+
+# ---------------------------------------------------------------
+#                       Globals
+# ---------------------------------------------------------------
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------
 #                       Project Manager
@@ -42,7 +46,9 @@ class ProjectsManager:
 
     Methods
     -------
-    create_new_project(token, customer_id, project_name, project_type, business_unit, internal_project_owner, internal_client_lead, lead_consulting_partner, consulting_companies, start_date, estimated_end_date, budgeted_cost, currency, team_members, linked_projects, overwrite_generate_code)
+    create_new_project(token, customer_id, project_name, project_type, business_unit, internal_project_owner, \
+        internal_client_lead, lead_consulting_partner, consulting_companies, start_date, estimated_end_date, \
+        budgeted_cost, currency, team_members, linked_projects, overwrite_generate_code)
         Creates a new unique project
 
     get_project_information(customer_id, project_id)
@@ -301,7 +307,7 @@ class ProjectsManager:
 
         # Return server response
         logger.info("Project created successfully")
-        return f"Project created successfully", 200
+        return "Project created successfully", 200
 
     @exception_handler
     def get_project_information(self, customer_id: str, project_id: str):
@@ -578,7 +584,7 @@ class ProjectsManager:
             )
             self._db.create_item(f"Workflows-{customer_id}", workflow)
 
-        logger.info(f"Project information updated successfully")
+        logger.info("Project information updated successfully")
         return "Project information updated successfully", 200
 
     @exception_handler
@@ -683,37 +689,37 @@ class ProjectsManager:
             )
             self._db.create_item(f"Workflows-{customer_id}", workflow)
 
-        logger.info(f"Successfully add to the project")
+        logger.info("Successfully add to the project")
         return "Successfully add to the project", 200
 
-    @exception_handler
-    def remove_members(
-        self, token: str, customer_id: str, project_id: str, team_members: list
-    ):
-        """
-        Removes unique team memebrs from an existing project for a unique customer.
+    # @exception_handler
+    # def remove_members(
+    #     self, token: str, customer_id: str, project_id: str, team_members: list
+    # ):
+    #     """
+    #     Removes unique team memebrs from an existing project for a unique customer.
 
-        Parameters:
-        -----------
-            customer_id: str [required]
-                unique customer ID
+    #     Parameters:
+    #     -----------
+    #         customer_id: str [required]
+    #             unique customer ID
 
-            project_id: str [required]
-                unique project ID
+    #         project_id: str [required]
+    #             unique project ID
 
-            team_members: list [required]
-                contains user IDs of team members to remove
+    #         team_members: list [required]
+    #             contains user IDs of team members to remove
 
-         Returns:
-         --------
+    #      Returns:
+    #      --------
 
-            response: str | dict
-                dict object containing project information
+    #         response: str | dict
+    #             dict object containing project information
 
-            http_status_code: int
-                http server status response code
-        """
-        pass
+    #         http_status_code: int
+    #             http server status response code
+    #     """
+    #     pass
 
     #     # Type guarding
     #     assert check_argument_types()
@@ -742,7 +748,8 @@ class ProjectsManager:
     #     update_expression = "REMOVE {}".format(", ".join([f"teamMembers.{k['userId']}" for k in team_members]))
 
     #     logger.info("Removing client team members from project")
-    #     response, http_status_code = self._db.update_item(table_name = table_name, key = key, update_expression = update_expression, return_values = "UPDATED_NEW")
+    #     response, http_status_code = self._db.update_item(table_name = table_name, key = key, \
+    # update_expression = update_expression, return_values = "UPDATED_NEW")
 
     #     logger.info("Successfully removed from project", http_status_code)
     #     return "Successfully removed from project", http_status_code

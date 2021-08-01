@@ -20,6 +20,7 @@ from ..utils import exception_handler, compute_secret_hash
 # Declare boto3 cognito client
 cognito = client("cognito-idp")
 
+
 # Confirm signup
 @exception_handler
 def confirm_signup(
@@ -74,6 +75,7 @@ def confirm_signup(
 
 # Declare boto3 dynamodb client
 dynamodb = resource("dynamodb")
+
 
 # Write data to dynamodb table
 def create_item(table_name: str, item: dict):

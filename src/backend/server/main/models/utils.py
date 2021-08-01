@@ -38,7 +38,8 @@ def exception_handler(func):
             return func(*args, **kwargs)
         except (ClientError, ParamValidationError, WaiterError, AttributeError) as e:
             logger.error(
-                f"Code: {e.response['Error']['Code']} - Message: {e.response['Error']['Message']} - HttpStatus: {e.response['ResponseMetadata']['HTTPStatusCode']}"
+                f"Code: {e.response['Error']['Code']} - Message: {e.response['Error']['Message']} - \
+                    HttpStatus: {e.response['ResponseMetadata']['HTTPStatusCode']}"
             )
             raise
 

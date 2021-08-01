@@ -4,13 +4,7 @@
 #                           Imports
 # ---------------------------------------------------------------
 
-# Logging Imports
-import logging
-
-logger = logging.getLogger(__name__)
-
-# General Imports
-import json
+# Native Imports
 from os import getenv
 from datetime import datetime, date
 from typeguard import check_argument_types
@@ -22,6 +16,16 @@ from .utils import exception_handler, generate_differences_message
 from ..models.ses import SES
 from .workflows import Workflows
 from ..models.dynamodb import Dynamo
+
+# Native Imports
+import json
+import logging
+
+# ---------------------------------------------------------------
+#                         Globals
+# ---------------------------------------------------------------
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------
 #                         Scope Manager
@@ -41,7 +45,8 @@ class ScopeManager:
 
     Methods
     -------
-    create_new_scope(token, customer_id, project_id, scope_name, start_date, end_date, consultant, total_fees, billing_schedule, engagement_letter_ref, team_memberstoken, customer_id, project_id, scope_name, start_date, end_date, consultant, total_fees, billing_schedule, engagement_letter_ref, team_members)
+    create_new_scope(token, customer_id, project_id, scope_name, start_date, end_date, \
+        consultant, total_fees, billing_schedule, engagement_letter_ref, team_memberstoken, customer_id, project_id, scope_name, start_date, end_date, consultant, total_fees, billing_schedule, engagement_letter_ref, team_members)
 
     get_scope_details(customer_id, project_id, scope_id)
 
@@ -199,7 +204,7 @@ class ScopeManager:
         # DynamoDB expressions
         logger.info("Creating new project scope")
         update_expression = f"SET scopes.#scopeId = :{dynamo_object['scopeId']}"
-        expression_attribute_names = {f"#scopeId": dynamo_object["scopeId"]}
+        expression_attribute_names = {"#scopeId": dynamo_object["scopeId"]}
         expression_attribute_values = {f":{dynamo_object['scopeId']}": dynamo_object}
         self._db.update_item(
             table_name,
@@ -492,7 +497,7 @@ class ScopeManager:
             return_values="UPDATED_NEW",
         )
 
-        logger.info(f"Project scope deleted successfully")
+        logger.info("Project scope deleted successfully")
         return "Project scope deleted successfully", 200
 
     @exception_handler
@@ -605,7 +610,7 @@ class ScopeManager:
             # kwargs["key"], kwargs["table_name"] = key, table_name
             self._db.create_item(f"Workflows-{customer_id}", workflow)
 
-        logger.info(f"Successfully added to the project")
+        logger.info("Successfully added to the project")
         return "Successfully added to the project", 200
 
     @exception_handler
@@ -688,5 +693,5 @@ class ScopeManager:
             )
             self._db.create_item(f"Workflows-{customer_id}", workflow)
 
-        logger.info(f"Successfully removed from project")
+        logger.info("Successfully removed from project")
         return "Successfully removed from project"

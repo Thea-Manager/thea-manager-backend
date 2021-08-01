@@ -4,11 +4,7 @@
 #                           Imports
 # ---------------------------------------------------------------
 
-# General Imports
-import logging
-
-logger = logging.getLogger(__name__)
-
+# Native imports
 from os import getenv
 from typeguard import check_argument_types
 
@@ -18,6 +14,15 @@ from boto3.dynamodb.conditions import Key
 
 # Utils imports
 from .utils import exception_handler
+
+# General Imports
+import logging
+
+# ---------------------------------------------------------------
+#                           Globals
+# ---------------------------------------------------------------
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------
 #                           DynamoDB
@@ -44,7 +49,8 @@ class Dynamo:
     read_multiple_items(table_name, key, projection_expression, last_evaluated_key, limit)
         Retrieves multiple items from dynamo table
 
-    update_item(table_name, key, update_expression, expression_attribute_names, expression_attribute_values, condition_expression, return_values)
+    update_item(table_name, key, update_expression, expression_attribute_names, \
+        expression_attribute_values, condition_expression, return_values)
         Updates item on dynamo table
 
     delete_item(table_name, key)
@@ -324,7 +330,8 @@ class Dynamo:
 
             return_values: str [optional]
                 parameter specifying what the API should return as part of it's response payload. Valid values are:
-                    * NONE If ReturnValues is not specified, or if its value is NONE, then nothing is returned. (This setting is the default for ReturnValues.)
+                    * NONE If ReturnValues is not specified, or if its value is NONE, then nothing is returned. \
+                        (This setting is the default for ReturnValues.)
                     * ALL_OLD Returns all of the attributes of the item, as they appeared before the UpdateItem operation.
                     * UPDATED_OLD Returns only the updated attributes, as they appeared before the UpdateItem operation.
                     * ALL_NEW Returns all of the attributes of the item, as they appear after the UpdateItem operation.

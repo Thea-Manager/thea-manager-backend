@@ -5,14 +5,10 @@
 # ---------------------------------------------------------------
 
 # Native imports
-import logging
 from re import sub
-
 
 # Flask imports
 from flask import Blueprint, request, jsonify, make_response
-
-from flask import current_app as app
 
 # local package imports
 from main.services import (
@@ -28,7 +24,10 @@ from main.services import (
     DiscussionsManager,
 )
 
-from main.services.utils import validate_token
+# from main.services.utils import validate_token
+
+# Native Imports
+import logging
 
 # ---------------------------------------------------------------
 #          Class instantiations & Configurations
@@ -198,7 +197,7 @@ def update_project_details(customerId: str, projectId: str):
     }
 
     # Update unique project's information
-    logger.info(f"Updating project information")
+    logger.info("Updating project information")
     response, code = projects_manager.update_project_info(**kwargs)
 
     # Return server response to client
@@ -874,7 +873,7 @@ def workflow_overview(customerId: str, projectId: str, typeId: str):
     }
 
     # Get user details
-    logger.info(f"Get workflow details")
+    logger.info("Get workflow details")
     response, code = worfklow_manager.get_workflows(**kwargs)
     return make_response(jsonify({"data": response}), code)
 

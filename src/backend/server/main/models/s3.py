@@ -1,11 +1,8 @@
 #!/usr/bin/env python
 
-# Logging Imports
-import logging
-from platform import version
-
-
-logger = logging.getLogger(__name__)
+# ---------------------------------------------------------------
+#                           Imports
+# ---------------------------------------------------------------
 
 # Native imports
 from os import getenv
@@ -18,6 +15,15 @@ from boto3 import client
 
 # Utils imports
 from .utils import exception_handler
+
+# Logging Imports
+import logging
+
+# ---------------------------------------------------------------
+#                            Globals
+# ---------------------------------------------------------------
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------
 #                               S3

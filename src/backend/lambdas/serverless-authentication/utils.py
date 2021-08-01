@@ -171,7 +171,8 @@ def exception_handler(func):
                 )
             elif type(e).__name__ == "InvalidSmsRoleTrustRelationshipException":
                 logger.error(
-                    "InvalidSmsRoleTrustRelationshipException - Invalid trust relationship with role provided with SMS configuration"
+                    "InvalidSmsRoleTrustRelationshipException - Invalid trust relationship with role provided \
+                        with SMS configuration"
                 )
                 return (
                     "Invalid trust relationship with role provided with SMS configuration",
@@ -179,7 +180,8 @@ def exception_handler(func):
                 )
             elif type(e).__name__ == "InvalidSmsRoleAccessPolicyException":
                 logger.error(
-                    "InvalidSmsRoleAccessPolicyException - Role provided for SMS configuration does not have permission to publish using Amazon SNS"
+                    "InvalidSmsRoleAccessPolicyException - Role provided for SMS configuration does not have \
+                        permission to publish using Amazon SNS"
                 )
                 return (
                     "Role provided for SMS configuration does not have permission to publish using Amazon SNS",
@@ -211,7 +213,8 @@ def exception_handler(func):
                 )
             elif type(e).__name__ == "EnableSoftwareTokenMFAException":
                 logger.error(
-                    "EnableSoftwareTokenMFAException - code mismatch and service fails to configure the software token TOTP multi-factor authentication (MFA)"
+                    "EnableSoftwareTokenMFAException - code mismatch and service fails to configure \
+                        the software token TOTP multi-factor authentication (MFA)"
                 )
                 return (
                     "MFA code mismatch",

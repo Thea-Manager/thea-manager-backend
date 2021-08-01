@@ -36,6 +36,7 @@ logger = logging.getLogger(__name__)
 #                           DynamoDB
 # ---------------------------------------------------------------
 
+
 # Write to dynamodb
 def write(item: dict):
 
@@ -77,12 +78,13 @@ def read_multiple_items(
 
         - projection_expression:
             type: str [required]
-            description: filter expression indicating keys to query from database. If none, then all keys of object are returned
+            description: filter expression indicating keys to query from database. \
+                If none, then all keys of object are returned
 
         - last_evaluated_key:
             type: str [optional]
-            description: used during pagination, is the key of the last item evaluated and to continue from instead of querynig
-                         the whole object
+            description: used during pagination, is the key of the last item evaluated and \
+                to continue from instead of querying the whole object
 
         - limit:
             type: int [optional]

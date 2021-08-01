@@ -11,6 +11,7 @@ if path.exists(path.join(base_dir, ".env")):
 else:
     load_dotenv()
 
+
 # Dev configurations
 class DevConfig:
     DEBUG = True

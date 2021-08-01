@@ -4,11 +4,6 @@
 #                           Imports
 # ---------------------------------------------------------------
 
-# Logging Imports
-import logging
-
-logger = logging.getLogger(__name__)
-
 # General Imports
 from typeguard import check_argument_types
 
@@ -17,6 +12,15 @@ from .utils import exception_handler
 
 # Local package imports
 from ..models.dynamodb import Dynamo
+
+# Logging Imports
+import logging
+
+# ---------------------------------------------------------------
+#                       Globals
+# ---------------------------------------------------------------
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------
 #                       User Manager

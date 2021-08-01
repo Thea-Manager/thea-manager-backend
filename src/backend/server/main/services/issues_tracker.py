@@ -4,13 +4,7 @@
 #                           Imports
 # ---------------------------------------------------------------
 
-# Logging Imports
-import logging
-
-logger = logging.getLogger(__name__)
-
 # General imports
-import json
 from os import getenv
 from datetime import date
 from typeguard import check_argument_types
@@ -23,6 +17,15 @@ from ..models.ses import SES
 from .workflows import Workflows
 from ..models.dynamodb import Dynamo
 
+# Native Imports
+import json
+import logging
+
+# ---------------------------------------------------------------
+#                               Globals
+# ---------------------------------------------------------------
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------
 #                           Issue Tracker
@@ -42,7 +45,9 @@ class IssuesTracker:
 
     Methods
     -------
-    create_new_milestone(token, customer_id, project_id, scope_id, issue_name, region, business_unit: str, date_of_raise, due_date, nature_of_issue, criticality, issue_str, impact_value, currency, impact_on, document_ref, issue_owner, resolution_path)
+    create_new_milestone(token, customer_id, project_id, scope_id, issue_name, region, business_unit, \
+        date_of_raise, due_date, nature_of_issue, criticality, issue_str, impact_value, currency, impact_on, \
+        document_ref, issue_owner, resolution_path)
         Creates new project milestone
 
     get_milestone_details(customer_id, project_id, scope_id, milestone_id)
@@ -221,8 +226,8 @@ class IssuesTracker:
             f"SET scopes.#scopeId.issues.#IssueId = :{dynamo_object['issueId']}"
         )
         expression_attribute_names = {
-            "#IssueId": dynamo_object["issueId"],
             "#scopeId": scope_id,
+            "#IssueId": dynamo_object["issueId"]
         }
         expression_attribute_values = {f":{dynamo_object['issueId']}": dynamo_object}
         self._db.update_item(
@@ -240,7 +245,7 @@ class IssuesTracker:
         )
         self._db.create_item(f"Workflows-{customer_id}", workflow)
 
-        logger.info(f"New issue created successfully")
+        logger.info("New issue created successfully")
         return "New issue created successfully", 200
 
     @exception_handler
@@ -524,5 +529,5 @@ class IssuesTracker:
             )
             self._db.create_item(f"Workflows-{customer_id}", workflow)
 
-        logger.info(f"Project issues deleted successfully")
+        logger.info("Project issues deleted successfully")
         return "Project issues deleted successfully", 200

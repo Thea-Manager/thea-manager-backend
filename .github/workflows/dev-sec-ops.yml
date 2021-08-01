@@ -114,49 +114,49 @@ jobs:
 
       # # Run automated code review
 
-  # # Workflow to trigger CodeQL SAST scan
-  # SAST-scan:
-  #   runs-on: ubuntu-latest
-  #   steps: 
-  #    # Checkout code from repository
-  #    - name: Checkout repository
-  #      id: checkout-repository
-  #      uses: actions/checkout@v2
+  # Workflow to trigger CodeQL SAST scan
+  SAST-scan:
+    runs-on: ubuntu-latest
+    steps: 
+     # Checkout code from repository
+     - name: Checkout repository
+       id: checkout-repository
+       uses: actions/checkout@v2
        
-  #    # Initialize CodeQL
-  #    - name: Initialize CodeQL
-  #      id: init-codeql
-  #      uses: github/codeql-action/init@v1
-  #      with:
-  #       lanugages: python
-  #       queries: security-and-quality
+     # Initialize CodeQL
+     - name: Initialize CodeQL
+       id: init-codeql
+       uses: github/codeql-action/init@v1
+       with:
+        lanugages: python
+        queries: security-and-quality
        
-  #    # Perform CodeQL Analysis
-  #    - name: Perform CodeQL Analysis
-  #      id: analyze-codeql
-  #      uses: github/codeql-action/analyze@v1
+     # Perform CodeQL Analysis
+     - name: Perform CodeQL Analysis
+       id: analyze-codeql
+       uses: github/codeql-action/analyze@v1
     
-  #    # Perform Container Scan
-  #    - name: Build docker image
-  #      id: build-docker-image
-  #      working-directory: ./src/backend/server
-  #      run: docker build -t thea-manager .
+     # Perform Container Scan
+     - name: Build docker image
+       id: build-docker-image
+       working-directory: ./src/backend/server
+       run: docker build -t thea-manager .
 
-  #    # Perform Synk Container Analysis
-  #    - name: Scan docker image for vulnerabilities
-  #      continue-on-error: true
-  #      uses: snyk/actions/docker@master
-  #      env:
-  #       SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-  #      with:
-  #       image: thea-manager
-  #       args: --file=./src/backend/server/Dockerfile
+     # Perform Synk Container Analysis
+     - name: Scan docker image for vulnerabilities
+       continue-on-error: true
+       uses: snyk/actions/docker@master
+       env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+       with:
+        image: thea-manager
+        args: --file=./src/backend/server/Dockerfile
     
-  #    # Upload results to github code scanning
-  #    - name: Upload result to GitHub Code Scanning
-  #      uses: github/codeql-action/upload-sarif@v1
-  #      with:
-  #        sarif_file: snyk.sarif
+     # Upload results to github code scanning
+     - name: Upload result to GitHub Code Scanning
+       uses: github/codeql-action/upload-sarif@v1
+       with:
+         sarif_file: snyk.sarif
 
 
 #   # Workflow to trigger ZAP DAST scan

@@ -430,9 +430,6 @@ def validate_token(access_token):
         2- verifying token signature
         3- verifying token claims
 
-    The steps to validate tokens are outlined in this AWS
-    documentation: https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-using-tokens-verifying-a-jwt.html
-
     Parameters
     ----------
         access_token: str [required]
