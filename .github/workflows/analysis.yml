@@ -74,7 +74,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           image: ${{ env.DOCKER_IMAGE }}
-          args: --file=${{ env.BACKEND_SOURCE_PATH }}/server/Dockerfile
+          args: --file=./src/backend/server/Dockerfile
 
       - name: Upload scan result
         if: ${{ github.event_name == 'workflow_dispatch' }}
