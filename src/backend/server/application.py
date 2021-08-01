@@ -22,21 +22,24 @@ __status__ = "Prototype"
 #                           Configure Logging
 # ---------------------------------------------------------------
 
-def setup_logging(default_path="log_config.yaml", default_level=logging.INFO, env_key="LOG_CFG"):
+
+def setup_logging(
+    default_path="log_config.yaml", default_level=logging.INFO, env_key="LOG_CFG"
+):
     """
-        Setup logging configuration
+    Setup logging configuration
 
-        Parameters
-        ----------
+    Parameters
+    ----------
 
-            default_path: str [required]
-                file path to read logging configurations from
+        default_path: str [required]
+            file path to read logging configurations from
 
-            default_level: required
-                default logging level
+        default_level: required
+            default logging level
 
-            env_key: str [required]
-                environment key for logging configuration
+        env_key: str [required]
+            environment key for logging configuration
     """
     path = default_path
     value = getenv(env_key, None)
@@ -50,6 +53,7 @@ def setup_logging(default_path="log_config.yaml", default_level=logging.INFO, en
         logging.config.dictConfig(configuration)
     else:
         logging.basicConfig(level=default_level)
+
 
 # App object
 application = create_app()

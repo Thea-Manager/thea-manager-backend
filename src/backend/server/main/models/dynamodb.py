@@ -6,6 +6,7 @@
 
 # General Imports
 import logging
+
 logger = logging.getLogger(__name__)
 
 from os import getenv
@@ -15,7 +16,7 @@ from typeguard import check_argument_types
 from boto3 import resource
 from boto3.dynamodb.conditions import Key
 
-# Utils imports 
+# Utils imports
 from .utils import exception_handler
 
 # ---------------------------------------------------------------
@@ -23,69 +24,69 @@ from .utils import exception_handler
 # ---------------------------------------------------------------
 
 
-class Dynamo():
+class Dynamo:
     """
-        This class to programtically interact with the boto3 DynamoDB API.
+    This class to programtically interact with the boto3 DynamoDB API.
 
-        Attributes
-        ----------
+    Attributes
+    ----------
 
-        _resource: class 'botocore.client.DynamoDB', required
+    _resource: class 'botocore.client.DynamoDB', required
 
-        Methods
-        -------
-        create_item(table_name, item)
-            Puts item into dynamo table
+    Methods
+    -------
+    create_item(table_name, item)
+        Puts item into dynamo table
 
-        read_single_item(table_name, key, projection_expression, expression_attribute_names, expression_attribute_values)
-            Retrives item from dynamo table
+    read_single_item(table_name, key, projection_expression, expression_attribute_names, expression_attribute_values)
+        Retrives item from dynamo table
 
-        read_multiple_items(table_name, key, projection_expression, last_evaluated_key, limit)
-            Retrieves multiple items from dynamo table
+    read_multiple_items(table_name, key, projection_expression, last_evaluated_key, limit)
+        Retrieves multiple items from dynamo table
 
-        update_item(table_name, key, update_expression, expression_attribute_names, expression_attribute_values, condition_expression, return_values)
-            Updates item on dynamo table
+    update_item(table_name, key, update_expression, expression_attribute_names, expression_attribute_values, condition_expression, return_values)
+        Updates item on dynamo table
 
-        delete_item(table_name, key)
-            Deletes item from dynamo table
+    delete_item(table_name, key)
+        Deletes item from dynamo table
     """
 
     def __init__(self) -> None:
-        self._resource = resource("dynamodb", region_name = getenv("REGION"))
+        self._resource = resource("dynamodb", region_name=getenv("REGION"))
 
     # Create
     @exception_handler
     def create_item(self, table_name: str, item: dict):
         """
-            Adds item to DynamoDB table
+        Adds item to DynamoDB table
 
-            Parameters
-            ----------
+        Parameters
+        ----------
 
-                table_name: str [required]
-                    DynamoDB table name to add object to
+            table_name: str [required]
+                DynamoDB table name to add object to
 
-                item: dict [required]
-                    Object to be added to DynamoDB
+            item: dict [required]
+                Object to be added to DynamoDB
 
-            Returns
-            -------
+        Returns
+        -------
 
-                response: str | None
-                    server response data
+            response: str | None
+                server response data
 
-                http_staus_code: int
-                    HTTP server response
+            http_staus_code: int
+                HTTP server response
 
-            Raises
-            ------
+        Raises
+        ------
 
-                ClientError
-                    Boto3 client service related error when making API request
+            ClientError
+                Boto3 client service related error when making API request
 
-                ParamValidationError
-                    Error is raised when incorrect parameters provided to boto3
-                    API method
+            ParamValidationError
+                Error is raised when incorrect parameters provided to boto3
+                API method
         """
 
         # Type guarding
@@ -96,52 +97,59 @@ class Dynamo():
 
         # Push to DynamoDB
         logger.info(f"Putting new item into database: {item}")
-        response = table.put_item(Item = item)
+        response = table.put_item(Item=item)
 
         logger.info(f"None {response['ResponseMetadata']['HTTPStatusCode']}")
-        return None, response['ResponseMetadata']['HTTPStatusCode']
+        return None, response["ResponseMetadata"]["HTTPStatusCode"]
 
     # Retrieve
     @exception_handler
-    def read_single_item(self, table_name: str, key: dict, projection_expression: str, expression_attribute_names: dict = None, expression_attribute_values: dict = None):
+    def read_single_item(
+        self,
+        table_name: str,
+        key: dict,
+        projection_expression: str,
+        expression_attribute_names: dict = None,
+        expression_attribute_values: dict = None,
+    ):
         """
-            Read single item from Dynamo table.
+        Read single item from Dynamo table.
 
-            Parameters
-            ----------
+        Parameters
+        ----------
 
-                table_name: str [required]
-                    DynamoDB table name to be queried
+            table_name: str [required]
+                DynamoDB table name to be queried
 
-                key: dict [required]
-                    Dictonary based object containing the filters to query DynamoDB
+            key: dict [required]
+                Dictonary based object containing the filters to query DynamoDB
 
-                projection_expression: str [required]
-                    Filter expression indicating keys to query from database. If none, then all keys of object are returned
+            projection_expression: str [required]
+                Filter expression indicating keys to query from database. If none, then all keys of object are returned
 
-            Returns
-            -------
+        Returns
+        -------
 
-                response: str | list
-                    server response data
+            response: str | list
+                server response data
 
-                http_staus_code: int
-                    HTTP server response
+            http_staus_code: int
+                HTTP server response
 
-            Raises
-            ------
+        Raises
+        ------
 
-                ClientError
-                    Boto3 client service related error when making API request
+            ClientError
+                Boto3 client service related error when making API request
 
-                ParamValidationError
-                    Error is raised when incorrect parameters provided to boto3
-                    API method
+            ParamValidationError
+                Error is raised when incorrect parameters provided to boto3
+                API method
         """
 
         # Type guarding
         assert check_argument_types()
-        
+
         # Target DynamoDB table
         table = self._resource.Table(table_name)
 
@@ -151,60 +159,68 @@ class Dynamo():
             "ProjectionExpression": projection_expression,
             "ExpressionAttributeNames": expression_attribute_names,
             "ExpressionAttributeValues": expression_attribute_values,
-            "ConsistentRead": True    
+            "ConsistentRead": True,
         }
 
-        kwargs = {k:v for k,v in kwargs.items() if v}
+        kwargs = {k: v for k, v in kwargs.items() if v}
 
         logger.info(f"Querying Dynamo table for key: {key}")
         return table.get_item(**kwargs).get("Item"), 200
 
     # Retrieve
     @exception_handler
-    def read_multiple_items(self, table_name: str, key: dict, projection_expression: str, expression_attribute_names: dict = None, last_evaluated_key: dict = None, limit = 1000):
+    def read_multiple_items(
+        self,
+        table_name: str,
+        key: dict,
+        projection_expression: str,
+        expression_attribute_names: dict = None,
+        last_evaluated_key: dict = None,
+        limit=1000,
+    ):
         """
-            Read multiple DynamoDB NoSQL object
+        Read multiple DynamoDB NoSQL object
 
-            Parameters:
-            -----------
+        Parameters:
+        -----------
 
-                table_name: str [required]
-                    DynamoDB table name to be queried
+            table_name: str [required]
+                DynamoDB table name to be queried
 
-                key: dict [required]
-                    Dictionary based object containing the filters to query DynamoDB
+            key: dict [required]
+                Dictionary based object containing the filters to query DynamoDB
 
-                projection_expression: str [required]
-                    Filter expression indicating keys to query from database. If none, then all keys of object are returned.
+            projection_expression: str [required]
+                Filter expression indicating keys to query from database. If none, then all keys of object are returned.
 
-                last_evaluated_key: str [optional]
-                    Is used during pagination, is the key of the last item evaluated to continue from.
+            last_evaluated_key: str [optional]
+                Is used during pagination, is the key of the last item evaluated to continue from.
 
-                limit: int [optional]
-                    The number of items to return during a single query request
+            limit: int [optional]
+                The number of items to return during a single query request
 
-            Returns:
+        Returns:
 
-                response: str | list
-                    server response data
+            response: str | list
+                server response data
 
-                http_staus_code: int
-                    HTTP server response
+            http_staus_code: int
+                HTTP server response
 
-            Raises
-            ------
+        Raises
+        ------
 
-                ClientError
-                    Boto3 client service related error when making API request
+            ClientError
+                Boto3 client service related error when making API request
 
-                ParamValidationError
-                    Error is raised when incorrect parameters provided to boto3
-                    API method
+            ParamValidationError
+                Error is raised when incorrect parameters provided to boto3
+                API method
         """
 
         # Type guarding
         assert check_argument_types()
-        
+
         # Target DynamoDB table
         table = self._resource.Table(table_name)
 
@@ -214,33 +230,35 @@ class Dynamo():
             "IndexName": key["index_name"],
             "ProjectionExpression": projection_expression,
             "ExpressionAttributeNames": expression_attribute_names,
-            "KeyConditionExpression": Key(key["index_name"]).eq(key["index_val"])
+            "KeyConditionExpression": Key(key["index_name"]).eq(key["index_val"]),
         }
 
-        kwargs = {k:v for k,v in kwargs.items() if v}
+        kwargs = {k: v for k, v in kwargs.items() if v}
 
-        logger.info(f"Querying Dynamo table for index: {key['index_name']}, val: {key['index_val']}")
+        logger.info(
+            f"Querying Dynamo table for index: {key['index_name']}, val: {key['index_val']}"
+        )
         return table.query(**kwargs).get("Items"), 200
 
     @exception_handler
     def read_entire_table(self, table_name: str, projection_expression: str = ""):
         """
-            Scans and retrieves an entire data table.
+        Scans and retrieves an entire data table.
 
-            Parameters
-            ----------
+        Parameters
+        ----------
 
-                table_name: str [required]
-                    name of data table to be scanned
+            table_name: str [required]
+                name of data table to be scanned
 
-                projection_expression: str [required]
-                    Filter expression indicating keys to query from database. If none, then all keys of object are returned.
+            projection_expression: str [required]
+                Filter expression indicating keys to query from database. If none, then all keys of object are returned.
 
-            Returns
-            -------
+        Returns
+        -------
 
-                table: list
-                    list of objects containing data table entries           
+            table: list
+                list of objects containing data table entries
         """
 
         # Type guarding
@@ -250,85 +268,92 @@ class Dynamo():
         table = self._resource.Table(table_name)
 
         # Define kwargs
-        kwargs = {
-            "ProjectionExpression": projection_expression
-        }
+        kwargs = {"ProjectionExpression": projection_expression}
 
         # Remove empty keys
-        kwargs = {k:v for k,v in kwargs.items() if v}
+        kwargs = {k: v for k, v in kwargs.items() if v}
 
         # Scan table
         response = table.scan(**kwargs)
 
         # Return response
         logger.info(f"null {response['ResponseMetadata']['HTTPStatusCode']}")
-        return response.get("Items", []), response['ResponseMetadata']['HTTPStatusCode']
+        return response.get("Items", []), response["ResponseMetadata"]["HTTPStatusCode"]
 
     # Update
     @exception_handler
-    def update_item(self, table_name: str, key: dict, update_expression: str, expression_attribute_names: dict = None, expression_attribute_values: dict = None, condition_expression = None, return_values: str = None):
+    def update_item(
+        self,
+        table_name: str,
+        key: dict,
+        update_expression: str,
+        expression_attribute_names: dict = None,
+        expression_attribute_values: dict = None,
+        condition_expression=None,
+        return_values: str = None,
+    ):
         """
-            Update an object on a Dynamo table.
+        Update an object on a Dynamo table.
 
-            Parameters
-            ----------
+        Parameters
+        ----------
 
-                table_name: str [required]
-                    DynamoDB table name.
+            table_name: str [required]
+                DynamoDB table name.
 
-                key: dict [required]
-                    Dictonary based object containing the filters to query DynamoDB.
+            key: dict [required]
+                Dictonary based object containing the filters to query DynamoDB.
 
-                update_expression: str [required]
-                    String instructing how to update DynamoDB object.
+            update_expression: str [required]
+                String instructing how to update DynamoDB object.
 
-                expression_attribute_names: dict [optional]
-                    Placeholder used in a Dynamo expression as an alternative to actual attribute 
-                    name. An expression attribute name must begin with a pound sign ( # ), and be 
-                    followed by one or more alphanumeric characters.
+            expression_attribute_names: dict [optional]
+                Placeholder used in a Dynamo expression as an alternative to actual attribute
+                name. An expression attribute name must begin with a pound sign ( # ), and be
+                followed by one or more alphanumeric characters.
 
-                expression_attribute_values: dict [optional]
-                    Used with update expressions, are substitutes for the actual values that you 
-                    want to replace in your update statement. Must start with a colon (":") rather 
-                    than a pound sign.
+            expression_attribute_values: dict [optional]
+                Used with update expressions, are substitutes for the actual values that you
+                want to replace in your update statement. Must start with a colon (":") rather
+                than a pound sign.
 
-                condition_expression: str [optional]
-                    Parameter that you can use on write-based operations. If you include a Condition Expression
-                    in your write operation, it will be evaluated prior to executing the write. If the Condition 
-                    expression evaluates to false, the write will be aborted.
+            condition_expression: str [optional]
+                Parameter that you can use on write-based operations. If you include a Condition Expression
+                in your write operation, it will be evaluated prior to executing the write. If the Condition
+                expression evaluates to false, the write will be aborted.
 
-                return_values: str [optional]
-                    parameter specifying what the API should return as part of it's response payload. Valid values are:
-                        * NONE If ReturnValues is not specified, or if its value is NONE, then nothing is returned. (This setting is the default for ReturnValues.)
-                        * ALL_OLD Returns all of the attributes of the item, as they appeared before the UpdateItem operation.
-                        * UPDATED_OLD Returns only the updated attributes, as they appeared before the UpdateItem operation.
-                        * ALL_NEW Returns all of the attributes of the item, as they appear after the UpdateItem operation.
-                        * UPDATED_NEW Returns only the updated attributes, as they appear after the UpdateItem operation.
+            return_values: str [optional]
+                parameter specifying what the API should return as part of it's response payload. Valid values are:
+                    * NONE If ReturnValues is not specified, or if its value is NONE, then nothing is returned. (This setting is the default for ReturnValues.)
+                    * ALL_OLD Returns all of the attributes of the item, as they appeared before the UpdateItem operation.
+                    * UPDATED_OLD Returns only the updated attributes, as they appeared before the UpdateItem operation.
+                    * ALL_NEW Returns all of the attributes of the item, as they appear after the UpdateItem operation.
+                    * UPDATED_NEW Returns only the updated attributes, as they appear after the UpdateItem operation.
 
-            Returns
-            -------
+        Returns
+        -------
 
-                response:
-                    type: str | list
-                        server response data
+            response:
+                type: str | list
+                    server response data
 
-                http_staus_code: int
-                    HTTP server response
+            http_staus_code: int
+                HTTP server response
 
-            Raises
-            ------
+        Raises
+        ------
 
-                ClientError
-                    Boto3 client service related error when making API request
+            ClientError
+                Boto3 client service related error when making API request
 
-                ParamValidationError
-                    Error is raised when incorrect parameters provided to boto3
-                    API method
+            ParamValidationError
+                Error is raised when incorrect parameters provided to boto3
+                API method
         """
 
         # Type guarding
         assert check_argument_types()
-        
+
         # Target DynamoDB table
         table = self._resource.Table(table_name)
 
@@ -339,7 +364,7 @@ class Dynamo():
             "ExpressionAttributeNames": expression_attribute_names,
             "ExpressionAttributeValues": expression_attribute_values,
             "ConditionExpression": condition_expression,
-            "ReturnValues": return_values
+            "ReturnValues": return_values,
         }
 
         # Remove empty keys
@@ -350,52 +375,52 @@ class Dynamo():
         logger.info(f"Updating dynamo object with key: {key}")
 
         logger.info(f"null {response['ResponseMetadata']['HTTPStatusCode']}")
-        return None, response['ResponseMetadata']['HTTPStatusCode']
+        return None, response["ResponseMetadata"]["HTTPStatusCode"]
 
     # Delete
     @exception_handler
     def delete_item(self, table_name: str, key: dict):
         """
-            Deletes object from Dynamo table
+        Deletes object from Dynamo table
 
-            Parameters
-            ----------
+        Parameters
+        ----------
 
-                table_name: str [required]
-                    DynamoDB table name
+            table_name: str [required]
+                DynamoDB table name
 
-                key: dict [required]
-                    Dictonary based object containing the filters to query DynamoDB
+            key: dict [required]
+                Dictonary based object containing the filters to query DynamoDB
 
-            Returns
-            -------
-                
-                response: str | list
-                    server response data
+        Returns
+        -------
 
-                http_staus_code: int
-                    HTTP server response
+            response: str | list
+                server response data
 
-            Raises
-            ------
+            http_staus_code: int
+                HTTP server response
 
-                ClientError
-                    Boto3 client service related error when making API request
+        Raises
+        ------
 
-                ParamValidationError
-                    Error is raised when incorrect parameters provided to boto3
-                    API method
+            ClientError
+                Boto3 client service related error when making API request
+
+            ParamValidationError
+                Error is raised when incorrect parameters provided to boto3
+                API method
         """
 
         # Type guarding
         assert check_argument_types()
-        
+
         # Target DynamoDB table
         table = self._resource.Table(table_name)
 
         # Delete DynamoDB item
-        response = table.delete_item(Key = key)
+        response = table.delete_item(Key=key)
         logger.info(f"Deleting item from DynamoDB: {key}")
 
         logger.info(f"{response} response['ResponseMetadata']['HTTPStatusCode']")
-        return response, response['ResponseMetadata']['HTTPStatusCode']
+        return response, response["ResponseMetadata"]["HTTPStatusCode"]

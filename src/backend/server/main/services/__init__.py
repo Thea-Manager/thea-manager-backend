@@ -15,11 +15,11 @@ __all__ = [
     "Workflows",
     "Analytics",
     "UserManager",
-    "ScopeManager", 
+    "ScopeManager",
     "IssuesTracker",
     "ReportsManager",
     "DocumentManager",
     "ProjectsManager",
     "MilestonesManager",
-    "DiscussionsManager"
+    "DiscussionsManager",
 ]

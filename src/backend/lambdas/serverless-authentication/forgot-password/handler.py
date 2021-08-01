@@ -19,80 +19,82 @@ cognito = client("cognito-idp")
 @exception_handler
 def forgot_password(client_id: str, client_secret: str, username: str):
     """
-        Account recovery method to initiate password change process
+    Account recovery method to initiate password change process
 
-        Parameters:
-        -----------
+    Parameters:
+    -----------
 
-            - client_id: str [required]
-                description: cognito unique client ID
+        - client_id: str [required]
+            description: cognito unique client ID
 
-            - client_secret: str [required]
-                description: cognito unique client secret
+        - client_secret: str [required]
+            description: cognito unique client secret
 
-            - username: str [required]
-                description: username
+        - username: str [required]
+            description: username
 
-        Returns:
-        --------
+    Returns:
+    --------
 
-            - Response:
-                type: None | str
-                description: null if success, else error messasge
+        - Response:
+            type: None | str
+            description: null if success, else error messasge
 
-            - http_status_code:
-                type: int
-                description: http server status code
+        - http_status_code:
+            type: int
+            description: http server status code
 
-        Raises:
-        ------
+    Raises:
+    ------
 
-            - InvalidParameterException
-                Invalid api parameters
+        - InvalidParameterException
+            Invalid api parameters
 
-            - LimitExceededException
-                Change password requests limit exceeded
+        - LimitExceededException
+            Change password requests limit exceeded
 
-            - ResourceNotFoundException
-                User pool or cognito app client doesn't exist
+        - ResourceNotFoundException
+            User pool or cognito app client doesn't exist
 
-            - UserNotConfirmedException
-                Cognito user not confirmed
+        - UserNotConfirmedException
+            Cognito user not confirmed
 
-            - UserNotFoundException
-                Cognito user does not exist
+        - UserNotFoundException
+            Cognito user does not exist
 
-            - UnexpectedLambdaException
-                Unexpected exception with AWS Lambda service
+        - UnexpectedLambdaException
+            Unexpected exception with AWS Lambda service
 
-            - UserLambdaValidationException
-                User validation exception
+        - UserLambdaValidationException
+            User validation exception
 
-            - InvalidLambdaResponseException
-                Invalid lambda response   
+        - InvalidLambdaResponseException
+            Invalid lambda response
 
-            - InternalErrorException
-                Internal error
+        - InternalErrorException
+            Internal error
 
-            - InvalidPasswordException
-                Password did not conform with password policy
+        - InvalidPasswordException
+            Password did not conform with password policy
 
-            - InvalidSmsRoleAccessPolicyException:
-                Role provided for SMS configuration does not have permission to publish using Amazon SNS
+        - InvalidSmsRoleAccessPolicyException:
+            Role provided for SMS configuration does not have permission to publish using Amazon SNS
 
-            - InvalidSmsRoleTrustRelationshipException
-                Invalid trust relationship with role provided with SMS configuration
-    
-            - InvalidEmailRoleAccessPolicyException
-                Cognito doesn't have permission to use email identity
+        - InvalidSmsRoleTrustRelationshipException
+            Invalid trust relationship with role provided with SMS configuration
 
-            - CodeDeliveryFailureException
-                Thrown when a verification code fails to deliver successfully 
+        - InvalidEmailRoleAccessPolicyException
+            Cognito doesn't have permission to use email identity
+
+        - CodeDeliveryFailureException
+            Thrown when a verification code fails to deliver successfully
     """
     return cognito.forgot_password(
-        ClientId = client_id,
-        Username = username,
-        SecretHash = compute_secret_hash(client_id, client_secret, username))
+        ClientId=client_id,
+        Username=username,
+        SecretHash=compute_secret_hash(client_id, client_secret, username),
+    )
+
 
 # ---------------------------------------------------------------
 #                           Main
@@ -100,19 +102,16 @@ def forgot_password(client_id: str, client_secret: str, username: str):
 
 
 def handler(event, context):
-    
+
     # Ingest required params
     kwargs = {
         "username": event["username"],
         "client_id": event["clientId"],
-        "client_secret": event["clientSecret"]
+        "client_secret": event["clientSecret"],
     }
-    
+
     # Signin
     response, code = forgot_password(**kwargs)
-    
+
     # TODO implement
-    return {
-        'body': response,
-        'statusCode': code
-    }
+    return {"body": response, "statusCode": code}

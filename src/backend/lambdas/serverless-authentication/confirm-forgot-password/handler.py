@@ -14,123 +14,127 @@ from ..utils import exception_handler, compute_secret_hash
 
 # Declare boto3 cognito client
 cognito = client("cognito-idp")
-  
+
 # Confirm password reset
 @exception_handler
-def confirm_forgot_password(client_id: str, client_secret: str, username: str, new_password: str, confirmation_code: str):
+def confirm_forgot_password(
+    client_id: str,
+    client_secret: str,
+    username: str,
+    new_password: str,
+    confirmation_code: str,
+):
     """
-        Account recovery method to initiate password change process
+    Account recovery method to initiate password change process
 
-        Parameters:
-        -----------
+    Parameters:
+    -----------
 
-            - client_id:
-                type: str [required]
-                description: cognito unique client ID
+        - client_id:
+            type: str [required]
+            description: cognito unique client ID
 
-            - client_secret:
-                type: str [required]
-                description: cognito unique client secret
+        - client_secret:
+            type: str [required]
+            description: cognito unique client secret
 
-            - username:
-                type: str [required]
-                description: username
-                
-            - new_password:
-                type: str [required]
-                description: new password
-                
-            - confirmation_code:
-                type: str [required]
-                description: password reset confirmation code
+        - username:
+            type: str [required]
+            description: username
 
-        Returns:
-        --------
-            - Response:
-                type: None | str
-                description: null if success, else error messasge
+        - new_password:
+            type: str [required]
+            description: new password
 
-            - http_status_code:
-                type: int
-                description: http server status code
+        - confirmation_code:
+            type: str [required]
+            description: password reset confirmation code
 
-        Raises:
-        ------
+    Returns:
+    --------
+        - Response:
+            type: None | str
+            description: null if success, else error messasge
 
-            - InternalErrorException
-                Internal error
-            
-            - InvalidParameterException
-                Invalid api parameters
+        - http_status_code:
+            type: int
+            description: http server status code
 
-            - InvalidPasswordException
-                Password did not conform with password policy
+    Raises:
+    ------
 
-            - LimitExceededException
-                Change password requests limit exceeded
+        - InternalErrorException
+            Internal error
 
-            - TooManyRequestsException
-                API requests limit exceeded
+        - InvalidParameterException
+            Invalid api parameters
 
-            - NotAuthorizedException
-                Not authorized to perform action
+        - InvalidPasswordException
+            Password did not conform with password policy
 
-            - ResourceNotFoundException
-                User pool or cognito app client doesn't exist
+        - LimitExceededException
+            Change password requests limit exceeded
 
-            - UserNotConfirmedException
-                Cognito user not confirmed
+        - TooManyRequestsException
+            API requests limit exceeded
 
-            - UserNotFoundException
-                Cognito user does not exist
+        - NotAuthorizedException
+            Not authorized to perform action
 
-            - UnexpectedLambdaException
-                Unexpected exception with AWS Lambda service
+        - ResourceNotFoundException
+            User pool or cognito app client doesn't exist
 
-            - UserLambdaValidationException
-                User validation exception
+        - UserNotConfirmedException
+            Cognito user not confirmed
 
-            - CodeMismatchException:
-                Incorrect confirmation code
+        - UserNotFoundException
+            Cognito user does not exist
 
-            - ExpiredCodeException
-                Confirmation code expired
-            
-            - TooManyFailedAttemptsException
-                Too many failed attempts
+        - UnexpectedLambdaException
+            Unexpected exception with AWS Lambda service
 
-            - InvalidLambdaResponseException
-                Invalid lambda response   
+        - UserLambdaValidationException
+            User validation exception
+
+        - CodeMismatchException:
+            Incorrect confirmation code
+
+        - ExpiredCodeException
+            Confirmation code expired
+
+        - TooManyFailedAttemptsException
+            Too many failed attempts
+
+        - InvalidLambdaResponseException
+            Invalid lambda response
     """
     return cognito.confirm_forgot_password(
-        ClientId = client_id,
-        Username = username,
-        Password = new_password,
-        ConfirmationCode = confirmation_code,
-        SecretHash = compute_secret_hash(client_id, client_secret, username)
+        ClientId=client_id,
+        Username=username,
+        Password=new_password,
+        ConfirmationCode=confirmation_code,
+        SecretHash=compute_secret_hash(client_id, client_secret, username),
     )
-        
+
+
 # ---------------------------------------------------------------
 #                           Main
 # ---------------------------------------------------------------
 
 
 def handler(event, context):
-    
+
     # Ingest required params
     kwargs = {
         "username": event["username"],
         "client_id": event["clientId"],
         "client_secret": event["clientSecret"],
         "new_password": event["newPassword"],
-        "confirmation_code": event["confirmationCode"]
+        "confirmation_code": event["confirmationCode"],
     }
-    
+
     # Signin
     response, code = confirm_forgot_password(**kwargs)
-    
+
     # TODO implement
-    return {
-        'body': response,
-        'statusCode': code
-    }
+    return {"body": response, "statusCode": code}
