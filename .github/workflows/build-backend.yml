@@ -1,18 +1,18 @@
 name: Build - Backend
 
-env:
-  SOURCE_PATH: "./src/backend"
 on:
   push:
     branches:
       - "**"
     paths:
-      - ${{ env.SOURCE_PATH }}
+      - "./src/backend"
 
 jobs:
   build:
     name: Build, lint & test
     runs-on: ubuntu-latest
+    env:
+      SOURCE_PATH: "./src/backend"
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
