@@ -41,21 +41,21 @@ jobs:
 #         with:
 #           sarif_file: codeguru-results.sarif.json
 
-  codeql:
-    name: CodeQL
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+#   codeql:
+#     name: CodeQL
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v2
 
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v1
-        with:
-          lanugages: python
-          queries: security-and-quality
+#       - name: Initialize CodeQL
+#         uses: github/codeql-action/init@v1
+#         with:
+#           lanugages: python
+#           queries: security-and-quality
 
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v1
+#       - name: Perform CodeQL Analysis
+#         uses: github/codeql-action/analyze@v1
 
   docker-analysis-backend:
     name: Docker Scan
