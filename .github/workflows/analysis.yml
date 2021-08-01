@@ -1,7 +1,7 @@
 name: Analysis
 
 env:
-  BACKEND_SOURCE_PATH: "../src/backend"
+  BACKEND_SOURCE_PATH: "./src/backend"
   DOCKER_IMAGE: "thea-manager"
 on:
 #   push:
@@ -65,7 +65,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build docker image
-        working-directory: ${{ env.BACKEND_SOURCE_PATH }}
+        working-directory: ${{ env.BACKEND_SOURCE_PATH }}/server
         run: docker build -t ${{ env.DOCKER_IMAGE }} .
 
       - name: Scan docker image for vulnerabilities
