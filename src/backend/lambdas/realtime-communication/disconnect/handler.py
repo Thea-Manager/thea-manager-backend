@@ -19,12 +19,14 @@ CUSTOMER_ID = getenv("CUSTOMER_ID")
 # Create dynamodb instance
 db = client("dynamodb")
 
-
 # Write to dynamodb
+
+
 def delete(item: dict):
 
     # write to dynamo
-    response = db.delete_item(TableName=f"OnlineConnection-{CUSTOMER_ID}", Key=item)
+    response = db.delete_item(
+        TableName=f"OnlineConnection-{CUSTOMER_ID}", Key=item)
 
     status_code = response["ResponseMetadata"]["HTTPStatusCode"]
 
