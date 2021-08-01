@@ -1,7 +1,7 @@
 name: Analysis
 
 env:
-  BACKEND_SOURCE_PATH: "./src/backend"
+  BACKEND_SOURCE_PATH: "../src/backend"
   DOCKER_IMAGE: "thea-manager"
 on:
 #   push:
@@ -74,7 +74,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           image: ${{ env.DOCKER_IMAGE }}
-          args: --file=./src/backend/server/Dockerfile
+          args: --file=${{ env.BACKEND_SOURCE_PATH }}/server/Dockerfile
 
       - name: Upload scan result
         if: ${{ github.event_name == 'workflow_dispatch' }}
