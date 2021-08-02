@@ -35,7 +35,7 @@ RUN apk add --upgrade apk-tools
 # Update package indexes
 RUN apk update
 
-# Update KRB5 serveer to mitigate CVE-2021-36222 Vulnerability
+# Update KRB5 serveer to mitigate CVE-2021-36222 Vulnerability 
 RUN apk add --upgrade krb5-server
 
 # Add non-root user
