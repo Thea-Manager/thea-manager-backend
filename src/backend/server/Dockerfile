@@ -6,7 +6,7 @@
 FROM python:3.9-alpine3.14 as build
 
 # Upgrade APK tools to mitigate CVE-2021-36159 Vulnerability
-RUN apk add --upgrade apk-tools 
+RUN apk add --upgrade apk-tools
 
 # Update package indexes
 RUN apk update
